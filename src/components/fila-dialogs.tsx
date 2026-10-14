@@ -183,7 +183,7 @@ export function PosicaoDialog({
         <DialogHeader>
           <DialogTitle>Consultar minha posição</DialogTitle>
           <DialogDescription>
-            Informe seu protocolo de encaminhamento. Seus dados não são exibidos.
+            Informe seu CPF ou Cartão Nacional de Saúde (CNS). Seus dados não são exibidos.
           </DialogDescription>
         </DialogHeader>
 
@@ -191,9 +191,14 @@ export function PosicaoDialog({
           className="space-y-3"
           onSubmit={(e) => {
             e.preventDefault();
-            if (!protocolo.trim() || !selecionada) return;
+            if (!selecionada) return;
+            if (!validarCpfCns(documento)) {
+              setErroDoc("Digite um CPF (11 dígitos) ou CNS (15 dígitos) válido.");
+              return;
+            }
+            setErroDoc("");
             const total = selecionada.naFila;
-            const posicao = posicaoPorProtocolo(protocolo.trim(), total);
+            const posicao = posicaoPorProtocolo(documento.replace(/\D/g, ""), total);
             setResultado({
               posicao,
               total,
@@ -204,15 +209,27 @@ export function PosicaoDialog({
           }}
         >
           <label className="block text-sm font-medium">
-            Protocolo
+            CPF ou Cartão Nacional de Saúde (CNS)
             <input
-              value={protocolo}
-              onChange={(e) => setProtocolo(e.target.value)}
-              placeholder="Ex: 2026-123456"
+              value={documento}
+              onChange={(e) => {
+                setDocumento(formatarCpfCns(e.target.value));
+                setErroDoc("");
+              }}
+              placeholder="000.000.000-00 ou 000 0000 0000 0000"
+              inputMode="numeric"
+              autoComplete="off"
               required
+              aria-invalid={!!erroDoc}
+              aria-describedby={erroDoc ? "erro-documento" : undefined}
               className="mt-1 h-11 w-full rounded-lg border border-input bg-card px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
             />
           </label>
+          {erroDoc && (
+            <p id="erro-documento" role="alert" className="text-sm font-medium text-destructive">
+              {erroDoc}
+            </p>
+          )}
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block text-sm font-medium">
               Especialidade
