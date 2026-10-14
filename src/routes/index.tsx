@@ -1,4 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import {
+  ESPECIALIDADES,
+  EspecialidadeDialog,
+  PosicaoDialog,
+  UNIDADES,
+  unidadesDa,
+} from "@/components/fila-dialogs";
 import {
   Activity,
   ArrowRight,
@@ -35,69 +43,16 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const filas = [
-  {
-    especialidade: "Clínica Geral",
-    unidade: "UBS Jardim das Flores",
-    bairro: "Zona Norte",
-    espera: "12 dias",
-    pessoas: 148,
-    tendencia: "down",
-    nivel: "moderada",
-  },
-  {
-    especialidade: "Pediatria",
-    unidade: "UPA Central",
-    bairro: "Centro",
-    espera: "3 dias",
-    pessoas: 62,
-    tendencia: "down",
-    nivel: "baixa",
-  },
-  {
-    especialidade: "Cardiologia",
-    unidade: "Hospital Municipal São Lucas",
-    bairro: "Zona Sul",
-    espera: "45 dias",
-    pessoas: 512,
-    tendencia: "up",
-    nivel: "alta",
-  },
-  {
-    especialidade: "Ortopedia",
-    unidade: "Hospital Municipal São Lucas",
-    bairro: "Zona Sul",
-    espera: "38 dias",
-    pessoas: 389,
-    tendencia: "stable",
-    nivel: "alta",
-  },
-  {
-    especialidade: "Oftalmologia",
-    unidade: "AME Especialidades",
-    bairro: "Zona Leste",
-    espera: "21 dias",
-    pessoas: 204,
-    tendencia: "down",
-    nivel: "moderada",
-  },
-  {
-    especialidade: "Ginecologia",
-    unidade: "UBS Vila Esperança",
-    bairro: "Zona Oeste",
-    espera: "9 dias",
-    pessoas: 97,
-    tendencia: "down",
-    nivel: "baixa",
-  },
-];
+function nivelDe(espera: number) {
+  return espera <= 10 ? "baixa" : espera <= 25 ? "moderada" : "alta";
+}
 
-const unidades = [
-  { nome: "UBS Jardim das Flores", tipo: "UBS", filas: 8, esperaMedia: "14 dias" },
-  { nome: "UPA Central", tipo: "UPA 24h", filas: 5, esperaMedia: "4 dias" },
-  { nome: "Hospital São Lucas", tipo: "Hospital", filas: 12, esperaMedia: "41 dias" },
-  { nome: "AME Especialidades", tipo: "AME", filas: 9, esperaMedia: "23 dias" },
-];
+const filasTodas = ESPECIALIDADES.map((esp) => {
+  const l = unidadesDa(esp);
+  const pessoas = l.reduce((s, x) => s + x.naFila, 0);
+  const espera = Math.round(l.reduce((s, x) => s + x.espera * x.naFila, 0) / pessoas);
+  return { especialidade: esp, unidades: l, pessoas, espera, vagas: l.reduce((s, x) => s + x.vagas, 0), nivel: nivelDe(espera) };
+});
 
 function NivelBadge({ nivel }: { nivel: string }) {
   const styles: Record<string, string> = {
@@ -130,6 +85,34 @@ function NivelBadge({ nivel }: { nivel: string }) {
 }
 
 function Index() {
+  const [busca, setBusca] = useState("");
+  const [termo, setTermo] = useState("");
+  const [espAberta, setEspAberta] = useState<string | null>(null);
+  const [posicaoOpen, setPosicaoOpen] = useState(false);
+  const [posicaoEsp, setPosicaoEsp] = useState<string | undefined>();
+  const t = termo.trim().toLowerCase();
+  const filas = filasTodas.filter(
+    (f) =>
+      !t ||
+      f.especialidade.toLowerCase().includes(t) ||
+      f.unidades.some((u) => u.unidade.nome.toLowerCase().includes(t) || u.unidade.tipo.toLowerCase().includes(t)),
+  );
+  const unidades = UNIDADES.filter(
+    (u) =>
+      !t ||
+      u.nome.toLowerCase().includes(t) ||
+      u.tipo.toLowerCase().includes(t) ||
+      u.especialidades.some((e) => e.nome.toLowerCase().includes(t)),
+  );
+  const abrirPosicao = (esp?: string) => {
+    setEspAberta(null);
+    setPosicaoEsp(esp);
+    setPosicaoOpen(true);
+  };
+  const buscar = () => {
+    setTermo(busca);
+    document.getElementById("filas")?.scrollIntoView({ behavior: "smooth" });
+  };
   return (
     <div className="min-h-screen bg-background">
       {/* Barra de acessibilidade */}
@@ -170,7 +153,7 @@ function Index() {
             <a href="#transparencia" className="hover:text-primary">
               Transparência
             </a>
-            <button className="rounded-lg bg-accent px-4 py-2 font-semibold text-accent-foreground transition-colors hover:bg-accent/90">
+            <button onClick={() => abrirPosicao()} className="rounded-lg bg-accent px-4 py-2 font-semibold text-accent-foreground transition-colors hover:bg-accent/90">
               Consultar minha posição
             </button>
           </nav>
@@ -193,7 +176,13 @@ function Index() {
                 Consulte o tempo de espera, o número de pessoas aguardando e a
                 situação de cada especialidade — sem precisar de cadastro.
               </p>
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <form
+                className="mt-6 flex flex-col gap-3 sm:flex-row"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  buscar();
+                }}
+              >
                 <div className="relative flex-1">
                   <Search
                     className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground"
@@ -201,16 +190,33 @@ function Index() {
                   />
                   <input
                     type="search"
+                    list="sugestoes"
+                    value={busca}
+                    onChange={(e) => {
+                      setBusca(e.target.value);
+                      if (!e.target.value) setTermo("");
+                    }}
                     placeholder="Busque por especialidade ou unidade de saúde"
                     aria-label="Buscar especialidade ou unidade de saúde"
                     className="h-12 w-full rounded-lg border border-input bg-card pl-10 pr-4 text-sm outline-none ring-ring focus:ring-2"
                   />
+                  <datalist id="sugestoes">
+                    {[...ESPECIALIDADES, ...UNIDADES.map((u) => u.nome)].map((v) => (
+                      <option key={v} value={v} />
+                    ))}
+                  </datalist>
                 </div>
-                <button className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-6 font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
+                <button type="submit" className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-6 font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
                   Buscar
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </button>
-              </div>
+              </form>
+              <button
+                onClick={() => abrirPosicao()}
+                className="mt-3 text-sm font-semibold text-primary underline underline-offset-2 md:hidden"
+              >
+                Consultar minha posição
+              </button>
             </div>
 
             {/* Indicadores */}
@@ -245,16 +251,32 @@ function Index() {
                 Atualizado hoje às 08h30 · Fonte: sistema municipal de regulação
               </p>
             </div>
-            <button className="rounded-lg border border-input bg-card px-4 py-2 text-sm font-medium transition-colors hover:bg-secondary">
-              Ver todas as especialidades
-            </button>
+            {t && (
+              <button
+                onClick={() => {
+                  setBusca("");
+                  setTermo("");
+                }}
+                className="rounded-lg border border-input bg-card px-4 py-2 text-sm font-medium transition-colors hover:bg-secondary"
+              >
+                Limpar busca “{termo}”
+              </button>
+            )}
           </div>
 
+          {filas.length === 0 && (
+            <p className="mt-8 rounded-xl border bg-card p-6 text-center text-muted-foreground">
+              Nenhuma especialidade ou unidade encontrada para “{termo}”.
+            </p>
+          )}
           <div className="mt-8 grid gap-4 md:grid-cols-2">
             {filas.map((fila) => (
-              <article
-                key={`${fila.especialidade}-${fila.unidade}`}
-                className="rounded-xl border bg-card p-5 shadow-sm transition-shadow hover:shadow-md"
+              <button
+                type="button"
+                key={fila.especialidade}
+                onClick={() => setEspAberta(fila.especialidade)}
+                aria-label={`Ver unidades e fila de ${fila.especialidade}`}
+                className="rounded-xl border bg-card p-5 text-left shadow-sm transition-shadow hover:border-primary hover:shadow-md focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
@@ -265,7 +287,7 @@ function Index() {
                       <h3 className="font-bold">{fila.especialidade}</h3>
                       <p className="flex items-center gap-1 text-xs text-muted-foreground">
                         <MapPin className="h-3 w-3" aria-hidden="true" />
-                        {fila.unidade} · {fila.bairro}
+                        {fila.unidades.length} unidades · {fila.vagas} vagas/dia
                       </p>
                     </div>
                   </div>
@@ -274,24 +296,19 @@ function Index() {
                 <div className="mt-4 grid grid-cols-3 gap-3 rounded-lg bg-muted p-3 text-center">
                   <div>
                     <p className="text-xs text-muted-foreground">Espera estimada</p>
-                    <p className="mt-0.5 font-bold">{fila.espera}</p>
+                    <p className="mt-0.5 font-bold">{fila.espera} dias</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Na fila</p>
                     <p className="mt-0.5 font-bold">{fila.pessoas} pessoas</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Tendência</p>
-                    <p className="mt-0.5 font-bold">
-                      {fila.tendencia === "down"
-                        ? "↓ Diminuindo"
-                        : fila.tendencia === "up"
-                          ? "↑ Aumentando"
-                          : "→ Estável"}
-                    </p>
+                    <p className="text-xs text-muted-foreground">Melhor opção</p>
+                    <p className="mt-0.5 truncate font-bold">{fila.unidades[0]?.unidade.tipo} · {fila.unidades[0]?.espera}d</p>
                   </div>
                 </div>
-              </article>
+                <p className="mt-3 text-xs font-semibold text-primary">Ver unidades disponíveis →</p>
+              </button>
             ))}
           </div>
         </section>
@@ -316,13 +333,26 @@ function Index() {
                   <dl className="mt-4 space-y-2 text-sm">
                     <div className="flex justify-between">
                       <dt className="text-muted-foreground">Filas ativas</dt>
-                      <dd className="font-semibold">{u.filas}</dd>
+                      <dd className="font-semibold">{u.especialidades.length}</dd>
                     </div>
                     <div className="flex justify-between">
                       <dt className="text-muted-foreground">Espera média</dt>
-                      <dd className="font-semibold">{u.esperaMedia}</dd>
+                      <dd className="font-semibold">
+                        {Math.round(u.especialidades.reduce((s, e) => s + e.espera, 0) / u.especialidades.length)} dias
+                      </dd>
                     </div>
                   </dl>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {u.especialidades.map((e) => (
+                      <button
+                        key={e.nome}
+                        onClick={() => setEspAberta(e.nome)}
+                        className="rounded-full bg-secondary px-2 py-0.5 text-xs font-medium hover:bg-primary hover:text-primary-foreground"
+                      >
+                        {e.nome}
+                      </button>
+                    ))}
+                  </div>
                 </article>
               ))}
             </div>
@@ -419,6 +449,17 @@ function Index() {
           Prefeitura Municipal · Secretaria de Saúde · Lei de Acesso à Informação nº 12.527/2011
         </div>
       </footer>
+      <EspecialidadeDialog
+        especialidade={espAberta}
+        onClose={() => setEspAberta(null)}
+        onConsultar={abrirPosicao}
+      />
+      <PosicaoDialog
+        key={`${posicaoEsp}-${posicaoOpen}`}
+        open={posicaoOpen}
+        onOpenChange={setPosicaoOpen}
+        especialidadeInicial={posicaoEsp}
+      />
     </div>
   );
 }
