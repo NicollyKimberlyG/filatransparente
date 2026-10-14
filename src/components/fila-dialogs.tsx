@@ -136,10 +136,10 @@ export function PosicaoDialog({
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  especialidadeInicial?: string;
+  especialidadeInicial?: string | undefined;
 }) {
   const [protocolo, setProtocolo] = useState("");
-  const [esp, setEsp] = useState(especialidadeInicial ?? ESPECIALIDADES[0]);
+  const [esp, setEsp] = useState<string>(especialidadeInicial ?? ESPECIALIDADES[0] ?? "");
   const opcoes = unidadesDa(esp);
   const [unidadeNome, setUnidadeNome] = useState(opcoes[0]?.unidade.nome ?? "");
   const [resultado, setResultado] = useState<null | {

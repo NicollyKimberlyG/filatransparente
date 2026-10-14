@@ -304,7 +304,7 @@ function Index() {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Melhor opção</p>
-                    <p className="mt-0.5 truncate font-bold">{fila.unidades[0].unidade.tipo} · {fila.unidades[0].espera}d</p>
+                    <p className="mt-0.5 truncate font-bold">{fila.unidades[0]?.unidade.tipo} · {fila.unidades[0]?.espera}d</p>
                   </div>
                 </div>
                 <p className="mt-3 text-xs font-semibold text-primary">Ver unidades disponíveis →</p>
