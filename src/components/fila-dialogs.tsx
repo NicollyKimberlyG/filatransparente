@@ -129,6 +129,24 @@ function posicaoPorProtocolo(protocolo: string, total: number) {
   return (h % total) + 1;
 }
 
+function formatarCpfCns(valor: string) {
+  const d = valor.replace(/\D/g, "").slice(0, 15);
+  if (d.length <= 11) {
+    // CPF: 000.000.000-00
+    return d
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+  }
+  // CNS: 000 0000 0000 0000
+  return d.replace(/(\d{3})(\d{4})(\d{4})(\d{0,4})/, "$1 $2 $3 $4").trim();
+}
+
+function validarCpfCns(valor: string) {
+  const d = valor.replace(/\D/g, "");
+  return d.length === 11 || d.length === 15;
+}
+
 export function PosicaoDialog({
   open,
   onOpenChange,
@@ -138,7 +156,8 @@ export function PosicaoDialog({
   onOpenChange: (v: boolean) => void;
   especialidadeInicial?: string | undefined;
 }) {
-  const [protocolo, setProtocolo] = useState("");
+  const [documento, setDocumento] = useState("");
+  const [erroDoc, setErroDoc] = useState("");
   const [esp, setEsp] = useState<string>(especialidadeInicial ?? ESPECIALIDADES[0] ?? "");
   const opcoes = unidadesDa(esp);
   const [unidadeNome, setUnidadeNome] = useState(opcoes[0]?.unidade.nome ?? "");
