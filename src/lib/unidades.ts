@@ -3,8 +3,8 @@ export type Unidade = {
   tipo: "UBS" | "UPA 24h" | "Hospital" | "AME" | "AMA Especialidades";
   bairro: string;
   endereco: string;
-  telefone?: string;
-  descricao?: string;
+  telefone?: string | undefined;
+  descricao?: string | undefined;
   especialidades: { nome: string; vagas: number; naFila: number; espera: number }[];
 };
 
