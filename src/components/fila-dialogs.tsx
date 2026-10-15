@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import { MapPin, UserRound } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CPFS_EXEMPLO } from "@/lib/consulta-exemplos";
 import {
   Dialog,
   DialogContent,
@@ -183,7 +185,7 @@ export function PosicaoDialog({
         <DialogHeader>
           <DialogTitle>Consultar minha posição</DialogTitle>
           <DialogDescription>
-            Informe seu CPF ou Cartão Nacional de Saúde (CNS). Seus dados não são exibidos.
+            Consulta demonstrativa, sem vínculo com cadastros reais do SUS. Os documentos não aparecem na fila.
           </DialogDescription>
         </DialogHeader>
 
@@ -209,12 +211,30 @@ export function PosicaoDialog({
           }}
         >
           <label className="block text-sm font-medium">
+            CPF de exemplo
+            <select
+              value={CPFS_EXEMPLO.find((cpf) => cpf === documento) ?? ""}
+              onChange={(e) => {
+                setDocumento(e.target.value);
+                setErroDoc("");
+                setResultado(null);
+              }}
+              className="mt-1 h-11 w-full rounded-lg border border-input bg-card px-3 text-sm"
+            >
+              <option value="">Selecione um exemplo (opcional)</option>
+              {CPFS_EXEMPLO.map((cpf) => (
+                <option key={cpf} value={cpf}>{cpf}</option>
+              ))}
+            </select>
+          </label>
+          <label className="block text-sm font-medium">
             CPF ou Cartão Nacional de Saúde (CNS)
             <input
               value={documento}
               onChange={(e) => {
                 setDocumento(formatarCpfCns(e.target.value));
                 setErroDoc("");
+                setResultado(null);
               }}
               placeholder="000.000.000-00 ou 000 0000 0000 0000"
               inputMode="numeric"
@@ -263,9 +283,9 @@ export function PosicaoDialog({
               </select>
             </label>
           </div>
-          <button className="h-11 w-full rounded-lg bg-primary font-semibold text-primary-foreground hover:bg-primary/90">
+          <Button type="submit" className="h-11 w-full rounded-lg font-semibold">
             Ver minha posição
-          </button>
+          </Button>
         </form>
 
         {resultado && (
