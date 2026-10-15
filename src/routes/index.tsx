@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { UnidadesDiretorio } from "@/components/unidades-diretorio";
+import { correspondeUnidade, normalizarBusca } from "@/lib/unidades";
 import {
   ESPECIALIDADES,
   EspecialidadeDialog,
@@ -90,20 +93,16 @@ function Index() {
   const [espAberta, setEspAberta] = useState<string | null>(null);
   const [posicaoOpen, setPosicaoOpen] = useState(false);
   const [posicaoEsp, setPosicaoEsp] = useState<string | undefined>();
-  const t = termo.trim().toLowerCase();
+  const [todasEspecialidades, setTodasEspecialidades] = useState(false);
+  const t = normalizarBusca(termo);
   const filas = filasTodas.filter(
     (f) =>
       !t ||
-      f.especialidade.toLowerCase().includes(t) ||
-      f.unidades.some((u) => u.unidade.nome.toLowerCase().includes(t) || u.unidade.tipo.toLowerCase().includes(t)),
+      normalizarBusca(f.especialidade).includes(t) ||
+      f.unidades.some((u) => correspondeUnidade(u.unidade, t)),
   );
-  const unidades = UNIDADES.filter(
-    (u) =>
-      !t ||
-      u.nome.toLowerCase().includes(t) ||
-      u.tipo.toLowerCase().includes(t) ||
-      u.especialidades.some((e) => e.nome.toLowerCase().includes(t)),
-  );
+  const principais = ["Clínica Geral", "Pediatria", "Ginecologia", "Cardiologia", "Ortopedia", "Oftalmologia"];
+  const filasVisiveis = t || todasEspecialidades ? filas : filas.filter(f => principais.includes(f.especialidade));
   const abrirPosicao = (esp?: string) => {
     setEspAberta(null);
     setPosicaoEsp(esp);
@@ -111,6 +110,7 @@ function Index() {
   };
   const buscar = () => {
     setTermo(busca);
+    setTodasEspecialidades(false);
     document.getElementById("filas")?.scrollIntoView({ behavior: "smooth" });
   };
   return (
@@ -133,7 +133,7 @@ function Index() {
       <header className="sticky top-0 z-10 border-b bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <HeartPulse className="h-6 w-6" aria-hidden="true" />
             </div>
             <div>
@@ -153,9 +153,9 @@ function Index() {
             <a href="#transparencia" className="hover:text-primary">
               Transparência
             </a>
-            <button onClick={() => abrirPosicao()} className="rounded-lg bg-accent px-4 py-2 font-semibold text-accent-foreground transition-colors hover:bg-accent/90">
+            <Button onClick={() => abrirPosicao()} className="rounded-lg bg-accent px-4 py-2 font-semibold text-accent-foreground transition-colors hover:bg-accent/90">
               Consultar minha posição
-            </button>
+            </Button>
           </nav>
         </div>
       </header>
@@ -167,14 +167,13 @@ function Index() {
             <div className="max-w-2xl">
               <span className="inline-flex items-center gap-2 rounded-full bg-accent/15 px-3 py-1 text-xs font-semibold text-accent">
                 <Eye className="h-3.5 w-3.5" aria-hidden="true" />
-                Dados públicos atualizados em tempo real
+                Consulta demonstrativa · São Paulo
               </span>
-              <h1 className="mt-4 text-3xl font-extrabold leading-tight tracking-tight md:text-5xl">
-                Acompanhe as filas de atendimento do SUS da sua cidade
+              <h1 className="mt-4 text-3xl font-extrabold leading-tight  md:text-5xl">
+                SUS Fila Transparente
               </h1>
               <p className="mt-4 text-base text-muted-foreground md:text-lg">
-                Consulte o tempo de espera, o número de pessoas aguardando e a
-                situação de cada especialidade — sem precisar de cadastro.
+                Encontre unidades de São Paulo e acompanhe filas demonstrativas por especialidade, sem precisar de cadastro.
               </p>
               <form
                 className="mt-6 flex flex-col gap-3 sm:flex-row"
@@ -206,30 +205,30 @@ function Index() {
                     ))}
                   </datalist>
                 </div>
-                <button type="submit" className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-6 font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
+                <Button type="submit" className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-6 font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
                   Buscar
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </button>
+                </Button>
               </form>
-              <button
+              <Button
                 onClick={() => abrirPosicao()}
-                className="mt-3 text-sm font-semibold text-primary underline underline-offset-2 md:hidden"
+                variant="link" className="mt-3 h-auto whitespace-normal px-0 text-sm font-semibold md:hidden"
               >
                 Consultar minha posição
-              </button>
+              </Button>
             </div>
 
             {/* Indicadores */}
             <dl className="mt-12 grid grid-cols-2 gap-4 lg:grid-cols-4">
               {[
-                { icon: Users, valor: "1.412", rotulo: "Pessoas em filas hoje" },
-                { icon: Clock3, valor: "18 dias", rotulo: "Espera média geral" },
-                { icon: Building2, valor: "34", rotulo: "Unidades monitoradas" },
-                { icon: Activity, valor: "-12%", rotulo: "Redução no mês" },
+                { icon: Users, valor: filasTodas.reduce((s, f) => s + f.pessoas, 0).toLocaleString("pt-BR"), rotulo: "Pessoas em filas simuladas" },
+                { icon: Clock3, valor: `${Math.round(filasTodas.reduce((s, f) => s + f.espera, 0) / filasTodas.length)} dias`, rotulo: "Espera média simulada" },
+                { icon: Building2, valor: String(UNIDADES.length), rotulo: "Unidades no diretório" },
+                { icon: Activity, valor: String(ESPECIALIDADES.length), rotulo: "Especialidades demonstrativas" },
               ].map((item) => (
                 <div
                   key={item.rotulo}
-                  className="rounded-xl border bg-card p-5 shadow-sm"
+                  className="rounded-lg border bg-card p-5 shadow-sm"
                 >
                   <item.icon className="h-5 w-5 text-primary" aria-hidden="true" />
                   <dt className="mt-3 text-sm text-muted-foreground">{item.rotulo}</dt>
@@ -241,42 +240,42 @@ function Index() {
         </section>
 
         {/* Filas por especialidade */}
-        <section id="filas" className="mx-auto max-w-6xl px-4 py-14">
+        <section id="filas" className="scroll-mt-24 mx-auto max-w-6xl px-4 py-14">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 className="text-2xl font-bold md:text-3xl">
                 Filas por especialidade
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Atualizado hoje às 08h30 · Fonte: sistema municipal de regulação
+                Vagas e filas simuladas · Sem vínculo com cadastros reais do SUS
               </p>
             </div>
             {t && (
-              <button
+              <Button
                 onClick={() => {
                   setBusca("");
                   setTermo("");
                 }}
-                className="rounded-lg border border-input bg-card px-4 py-2 text-sm font-medium transition-colors hover:bg-secondary"
+                variant="outline" className="h-auto whitespace-normal rounded-lg px-4 py-2 text-sm font-medium"
               >
                 Limpar busca “{termo}”
-              </button>
+              </Button>
             )}
           </div>
 
           {filas.length === 0 && (
-            <p className="mt-8 rounded-xl border bg-card p-6 text-center text-muted-foreground">
+            <p className="mt-8 rounded-lg border bg-card p-6 text-center text-muted-foreground">
               Nenhuma especialidade ou unidade encontrada para “{termo}”.
             </p>
           )}
           <div className="mt-8 grid gap-4 md:grid-cols-2">
-            {filas.map((fila) => (
-              <button
+            {filasVisiveis.map((fila) => (
+              <Button
                 type="button"
                 key={fila.especialidade}
                 onClick={() => setEspAberta(fila.especialidade)}
                 aria-label={`Ver unidades e fila de ${fila.especialidade}`}
-                className="rounded-xl border bg-card p-5 text-left shadow-sm transition-shadow hover:border-primary hover:shadow-md focus:outline-none focus:ring-2 focus:ring-ring"
+                variant="outline" className="h-auto min-w-0 flex-col items-stretch whitespace-normal rounded-lg border bg-card p-5 text-left shadow-sm hover:bg-card hover:border-primary"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
@@ -308,56 +307,13 @@ function Index() {
                   </div>
                 </div>
                 <p className="mt-3 text-xs font-semibold text-primary">Ver unidades disponíveis →</p>
-              </button>
+              </Button>
             ))}
           </div>
+          {!t && <div className="mt-6 flex justify-center"><Button variant="outline" onClick={() => setTodasEspecialidades(v => !v)}>{todasEspecialidades ? "Mostrar principais" : `Ver todas as especialidades (${ESPECIALIDADES.length})`}</Button></div>}
         </section>
 
-        {/* Unidades de saúde */}
-        <section id="unidades" className="border-y bg-secondary/50">
-          <div className="mx-auto max-w-6xl px-4 py-14">
-            <h2 className="text-2xl font-bold md:text-3xl">Unidades de saúde</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Visão geral das unidades com filas monitoradas
-            </p>
-            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {unidades.map((u) => (
-                <article
-                  key={u.nome}
-                  className="rounded-xl border bg-card p-5 shadow-sm"
-                >
-                  <span className="rounded-md bg-primary/10 px-2 py-1 text-xs font-semibold text-primary">
-                    {u.tipo}
-                  </span>
-                  <h3 className="mt-3 font-bold leading-snug">{u.nome}</h3>
-                  <dl className="mt-4 space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <dt className="text-muted-foreground">Filas ativas</dt>
-                      <dd className="font-semibold">{u.especialidades.length}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="text-muted-foreground">Espera média</dt>
-                      <dd className="font-semibold">
-                        {Math.round(u.especialidades.reduce((s, e) => s + e.espera, 0) / u.especialidades.length)} dias
-                      </dd>
-                    </div>
-                  </dl>
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {u.especialidades.map((e) => (
-                      <button
-                        key={e.nome}
-                        onClick={() => setEspAberta(e.nome)}
-                        className="rounded-full bg-secondary px-2 py-0.5 text-xs font-medium hover:bg-primary hover:text-primary-foreground"
-                      >
-                        {e.nome}
-                      </button>
-                    ))}
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
+        <UnidadesDiretorio termo={termo} onEspecialidade={setEspAberta} />
 
         {/* Transparência */}
         <section id="transparencia" className="mx-auto max-w-6xl px-4 py-14">
@@ -367,15 +323,13 @@ function Index() {
                 Compromisso com a transparência
               </h2>
               <p className="mt-3 text-muted-foreground">
-                Todos os dados exibidos neste portal são públicos, auditáveis e
-                atualizados automaticamente a partir do sistema de regulação
-                municipal, em conformidade com a Lei de Acesso à Informação.
+                As filas, vagas e ofertas de especialidades são demonstrativas. Os endereços e contatos foram informados para este diretório e precisam ser confirmados com as unidades.
               </p>
               <ul className="mt-6 space-y-3">
                 {[
-                  "Dados anonimizados — nenhum paciente é identificado",
-                  "Histórico completo disponível para download",
-                  "Metodologia de cálculo publicada e aberta",
+                  "Outros pacientes aparecem sem nome ou documento",
+                  "Nomes fictícios exibidos somente após a consulta",
+                  "Sem acesso a prontuários ou filas reais do SUS",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-3 text-sm">
                     <ShieldCheck
@@ -387,14 +341,14 @@ function Index() {
                 ))}
               </ul>
             </div>
-            <div className="rounded-2xl border bg-card p-6 shadow-sm">
+            <div className="border-l pl-6">
               <h3 className="font-bold">Como a fila é organizada?</h3>
               <ol className="mt-4 space-y-4">
                 {[
-                  "Você é encaminhado pela UBS ou UPA de referência",
-                  "O sistema classifica por prioridade clínica e ordem de chegada",
-                  "Você acompanha sua posição pelo protocolo, sem expor seus dados",
-                  "A unidade entra em contato quando sua vez se aproxima",
+                  "O atendimento segue a ordem de chegada",
+                  "Urgências têm prioridade após avaliação da equipe de saúde",
+                  "Uma nova urgência fica após as prioridades já na fila, por ordem de chegada",
+                  "Os demais pacientes mantêm sua ordem de chegada",
                 ].map((passo, i) => (
                   <li key={passo} className="flex gap-3 text-sm">
                     <span
