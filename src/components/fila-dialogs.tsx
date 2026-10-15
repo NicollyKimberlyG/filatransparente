@@ -10,93 +10,28 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-export type Unidade = {
-  nome: string;
-  tipo: "UBS" | "UPA 24h" | "Hospital" | "AME";
-  bairro: string;
-  especialidades: { nome: string; vagas: number; naFila: number; espera: number }[];
-};
+export { UNIDADES, ESPECIALIDADES, unidadesDa } from "@/lib/unidades";
+import { ESPECIALIDADES, unidadesDa } from "@/lib/unidades";
+import { criarFilaDemonstrativa, pacientePorDocumento, type PacienteFila } from "@/lib/fila";
 
-export const UNIDADES: Unidade[] = [
-  {
-    nome: "UBS Jardim das Flores",
-    tipo: "UBS",
-    bairro: "Zona Norte",
-    especialidades: [
-      { nome: "Clínica Geral", vagas: 12, naFila: 148, espera: 12 },
-      { nome: "Pediatria", vagas: 6, naFila: 40, espera: 6 },
-      { nome: "Ginecologia", vagas: 4, naFila: 55, espera: 11 },
-    ],
-  },
-  {
-    nome: "UBS Vila Esperança",
-    tipo: "UBS",
-    bairro: "Zona Oeste",
-    especialidades: [
-      { nome: "Clínica Geral", vagas: 9, naFila: 87, espera: 8 },
-      { nome: "Ginecologia", vagas: 7, naFila: 97, espera: 9 },
-    ],
-  },
-  {
-    nome: "UPA Central",
-    tipo: "UPA 24h",
-    bairro: "Centro",
-    especialidades: [
-      { nome: "Clínica Geral", vagas: 20, naFila: 35, espera: 1 },
-      { nome: "Pediatria", vagas: 10, naFila: 62, espera: 3 },
-      { nome: "Ortopedia", vagas: 3, naFila: 44, espera: 7 },
-    ],
-  },
-  {
-    nome: "Hospital Municipal São Lucas",
-    tipo: "Hospital",
-    bairro: "Zona Sul",
-    especialidades: [
-      { nome: "Cardiologia", vagas: 5, naFila: 512, espera: 45 },
-      { nome: "Ortopedia", vagas: 4, naFila: 389, espera: 38 },
-      { nome: "Clínica Geral", vagas: 8, naFila: 120, espera: 15 },
-    ],
-  },
-  {
-    nome: "AME Especialidades",
-    tipo: "AME",
-    bairro: "Zona Leste",
-    especialidades: [
-      { nome: "Oftalmologia", vagas: 6, naFila: 204, espera: 21 },
-      { nome: "Cardiologia", vagas: 3, naFila: 260, espera: 32 },
-      { nome: "Ortopedia", vagas: 2, naFila: 150, espera: 25 },
-    ],
-  },
-];
-
-export const ESPECIALIDADES = Array.from(
-  new Set(UNIDADES.flatMap((u) => u.especialidades.map((e) => e.nome))),
-).sort();
-
-export function unidadesDa(especialidade: string) {
-  return UNIDADES.flatMap((u) =>
-    u.especialidades
-      .filter((e) => e.nome === especialidade)
-      .map((e) => ({ unidade: u, ...e })),
-  ).sort((a, b) => a.espera - b.espera);
-}
-
-const PRIORIDADES = ["Urgente", "Prioritário", "Normal", "Normal", "Normal"];
-
-function FilaLista({ total, minhaPosicao, nome }: { total: number; minhaPosicao: number; nome: string }) {
+function FilaLista({ fila, minhaPosicao, nome }: { fila: PacienteFila[]; minhaPosicao: number; nome: string }) {
+  const total = fila.length;
   const inicio = Math.max(1, minhaPosicao - 4);
   const fim = Math.min(total, minhaPosicao + 3);
   const linhas = [];
   for (let p = inicio; p <= fim; p++) linhas.push(p);
+  const prioridades = fila.filter(p => p.urgente).length;
+  if (inicio > 1) linhas.unshift(...Array.from({ length: Math.min(3, inicio - 1) }, (_, i) => i + 1));
   return (
     <ol className="space-y-1.5" aria-label="Fila de atendimento">
       {inicio > 1 && (
         <li className="text-center text-xs text-muted-foreground">
-          … {inicio - 1} pessoas à frente
+          {prioridades} urgências na frente · demais por chegada
         </li>
       )}
       {linhas.map((p) => {
         const eu = p === minhaPosicao;
+        const paciente = fila[p - 1];
         return (
           <li
             key={p}
@@ -108,10 +43,10 @@ function FilaLista({ total, minhaPosicao, nome }: { total: number; minhaPosicao:
             <span className="flex min-w-0 items-center gap-2 font-semibold">
               <span className="w-8 shrink-0 tabular-nums">{p}º</span>
               <UserRound className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span className="break-words">{eu ? `${nome} (Você)` : `Paciente ***${String((p * 7919) % 1000).padStart(3, "0")}`}</span>
+              <span className="break-words">{eu ? `${nome} (Você)` : `Paciente ***${String(((paciente?.chegada ?? p) * 7919) % 1000).padStart(3, "0")}`}</span>
             </span>
             <span className={`shrink-0 text-xs ${eu ? "" : "text-muted-foreground"}`}>
-              {eu ? "Sua posição" : PRIORIDADES[p % PRIORIDADES.length]}
+              {paciente?.urgente ? "Urgência · Prioridade" : "Ordem de chegada"}
             </span>
           </li>
         );
@@ -123,12 +58,6 @@ function FilaLista({ total, minhaPosicao, nome }: { total: number; minhaPosicao:
       )}
     </ol>
   );
-}
-
-function posicaoPorProtocolo(protocolo: string, total: number) {
-  let h = 0;
-  for (const c of protocolo) h = (h * 31 + c.charCodeAt(0)) % 100000;
-  return (h % total) + 1;
 }
 
 function formatarCpfCns(valor: string) {
@@ -164,6 +93,7 @@ export function PosicaoDialog({
   const opcoes = unidadesDa(esp);
   const [unidadeNome, setUnidadeNome] = useState(opcoes[0]?.unidade.nome ?? "");
   const [resultado, setResultado] = useState<null | {
+    fila: PacienteFila[];
     posicao: number;
     total: number;
     vagas: number;
@@ -206,8 +136,11 @@ export function PosicaoDialog({
             }
             setErroDoc("");
             const total = selecionada.naFila;
-            const posicao = posicaoPorProtocolo(documento.replace(/\D/g, ""), total);
+            const fila = criarFilaDemonstrativa(total);
+            const id = pacientePorDocumento(documento, total);
+            const posicao = fila.findIndex(p => p.id === id) + 1;
             setResultado({
+              fila,
               posicao,
               total,
               vagas: selecionada.vagas,
@@ -305,7 +238,8 @@ export function PosicaoDialog({
             <p className="text-xs text-muted-foreground">
               {resultado.unidade} · {resultado.vagas} vagas por dia
             </p>
-            <FilaLista total={resultado.total} minhaPosicao={resultado.posicao} nome={resultado.nome} />
+            <p className="text-xs text-muted-foreground">Urgências primeiro, por chegada. Depois, os demais pacientes por chegada. Classificação clínica simulada.</p>
+            <FilaLista fila={resultado.fila} minhaPosicao={resultado.posicao} nome={resultado.nome} />
           </div>
         )}
       </DialogContent>
@@ -335,18 +269,19 @@ export function EspecialidadeDialog({
         <DialogHeader>
           <DialogTitle>{especialidade}</DialogTitle>
           <DialogDescription>
-            {lista.length} unidades disponíveis · {total} pessoas na fila · {vagas} vagas/dia
+            Dados demonstrativos · {lista.length} unidades disponíveis · {total} pessoas na fila · {vagas} vagas/dia
           </DialogDescription>
         </DialogHeader>
         <ul className="space-y-3">
           {lista.map((l, i) => (
-            <li key={l.unidade.nome} className="rounded-xl border bg-card p-4">
+            <li key={l.unidade.nome} className="rounded-lg border bg-card p-4">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
                     {l.unidade.tipo}
                   </span>
                   <p className="mt-2 font-bold">{l.unidade.nome}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{l.unidade.endereco}</p>
                   <p className="flex items-center gap-1 text-xs text-muted-foreground">
                     <MapPin className="h-3 w-3" aria-hidden="true" />
                     {l.unidade.bairro}
@@ -375,12 +310,12 @@ export function EspecialidadeDialog({
             </li>
           ))}
         </ul>
-        <button
+        <Button
           onClick={() => especialidade && onConsultar(especialidade)}
           className="h-11 w-full rounded-lg bg-accent font-semibold text-accent-foreground hover:bg-accent/90"
         >
           Consultar minha posição nesta fila
-        </button>
+        </Button>
       </DialogContent>
     </Dialog>
   );
