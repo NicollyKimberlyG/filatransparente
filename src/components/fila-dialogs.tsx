@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { MapPin, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CPFS_EXEMPLO } from "@/lib/consulta-exemplos";
+import { nomeDemonstrativoPorDocumento } from "@/lib/consulta-exemplos";
 import {
   Dialog,
   DialogContent,
@@ -83,7 +83,7 @@ export function unidadesDa(especialidade: string) {
 
 const PRIORIDADES = ["Urgente", "Prioritário", "Normal", "Normal", "Normal"];
 
-function FilaLista({ total, minhaPosicao }: { total: number; minhaPosicao: number }) {
+function FilaLista({ total, minhaPosicao, nome }: { total: number; minhaPosicao: number; nome: string }) {
   const inicio = Math.max(1, minhaPosicao - 4);
   const fim = Math.min(total, minhaPosicao + 3);
   const linhas = [];
@@ -101,16 +101,16 @@ function FilaLista({ total, minhaPosicao }: { total: number; minhaPosicao: numbe
           <li
             key={p}
             aria-current={eu ? "true" : undefined}
-            className={`flex items-center justify-between rounded-lg border px-3 py-2 text-sm ${
+            className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm ${
               eu ? "border-primary bg-primary text-primary-foreground" : "bg-card"
             }`}
           >
-            <span className="flex items-center gap-2 font-semibold">
-              <span className="w-8 tabular-nums">{p}º</span>
-              <UserRound className="h-4 w-4" aria-hidden="true" />
-              {eu ? "Você" : `Paciente ***${String((p * 7919) % 1000).padStart(3, "0")}`}
+            <span className="flex min-w-0 items-center gap-2 font-semibold">
+              <span className="w-8 shrink-0 tabular-nums">{p}º</span>
+              <UserRound className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span className="break-words">{eu ? `${nome} (Você)` : `Paciente ***${String((p * 7919) % 1000).padStart(3, "0")}`}</span>
             </span>
-            <span className={`text-xs ${eu ? "" : "text-muted-foreground"}`}>
+            <span className={`shrink-0 text-xs ${eu ? "" : "text-muted-foreground"}`}>
               {eu ? "Sua posição" : PRIORIDADES[p % PRIORIDADES.length]}
             </span>
           </li>
@@ -169,6 +169,8 @@ export function PosicaoDialog({
     vagas: number;
     espera: number;
     unidade: string;
+    nome: string;
+    documento: string;
   }>(null);
 
   const selecionada = opcoes.find((o) => o.unidade.nome === unidadeNome) ?? opcoes[0];
@@ -178,14 +180,18 @@ export function PosicaoDialog({
       open={open}
       onOpenChange={(v) => {
         onOpenChange(v);
-        if (!v) setResultado(null);
+        if (!v) {
+          setResultado(null);
+          setDocumento("");
+          setErroDoc("");
+        }
       }}
     >
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Consultar minha posição</DialogTitle>
           <DialogDescription>
-            Consulta demonstrativa, sem vínculo com cadastros reais do SUS. Os documentos não aparecem na fila.
+            Consulta demonstrativa: nomes fictícios e posições simuladas, sem vínculo com cadastros reais do SUS.
           </DialogDescription>
         </DialogHeader>
 
@@ -207,26 +213,11 @@ export function PosicaoDialog({
               vagas: selecionada.vagas,
               espera: Math.max(1, Math.ceil((posicao / total) * selecionada.espera)),
               unidade: selecionada.unidade.nome,
+              nome: nomeDemonstrativoPorDocumento(documento),
+              documento: formatarCpfCns(documento),
             });
           }}
         >
-          <label className="block text-sm font-medium">
-            CPF de exemplo
-            <select
-              value={CPFS_EXEMPLO.find((cpf) => cpf === documento) ?? ""}
-              onChange={(e) => {
-                setDocumento(e.target.value);
-                setErroDoc("");
-                setResultado(null);
-              }}
-              className="mt-1 h-11 w-full rounded-lg border border-input bg-card px-3 text-sm"
-            >
-              <option value="">Selecione um exemplo (opcional)</option>
-              {CPFS_EXEMPLO.map((cpf) => (
-                <option key={cpf} value={cpf}>{cpf}</option>
-              ))}
-            </select>
-          </label>
           <label className="block text-sm font-medium">
             CPF ou Cartão Nacional de Saúde (CNS)
             <input
@@ -290,6 +281,13 @@ export function PosicaoDialog({
 
         {resultado && (
           <div className="mt-2 space-y-4" aria-live="polite">
+            <div className="space-y-1 border-b pb-3" aria-label="Identificação da consulta">
+              <p className="break-words font-semibold">{resultado.nome}</p>
+              <p className="text-sm text-muted-foreground">
+                {resultado.documento.replace(/\D/g, "").length === 11 ? "CPF" : "CNS"}: {resultado.documento}
+              </p>
+              <p className="text-xs text-muted-foreground">Nome fictício · Consulta demonstrativa</p>
+            </div>
             <div className="grid grid-cols-3 gap-2 rounded-lg bg-muted p-3 text-center">
               <div>
                 <p className="text-xs text-muted-foreground">Sua posição</p>
@@ -307,7 +305,7 @@ export function PosicaoDialog({
             <p className="text-xs text-muted-foreground">
               {resultado.unidade} · {resultado.vagas} vagas por dia
             </p>
-            <FilaLista total={resultado.total} minhaPosicao={resultado.posicao} />
+            <FilaLista total={resultado.total} minhaPosicao={resultado.posicao} nome={resultado.nome} />
           </div>
         )}
       </DialogContent>
