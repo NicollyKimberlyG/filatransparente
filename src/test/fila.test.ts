@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { organizarFila, criarFilaDemonstrativa } from "@/lib/fila";
+import { organizarFila, criarFila } from "@/lib/fila";
 const normal = (id: string, chegada: number) => ({ id, chegada, urgente: false });
 const urgente = (id: string, chegada: number) => ({ id, chegada, urgente: true });
 describe("Ordem da fila", () => {
@@ -14,7 +14,7 @@ describe("Ordem da fila", () => {
     expect(organizarFila([...fila, urgente("nova-prioridade", 5)]).map(p => p.id)).toEqual(["prioridade-1", "prioridade-2", "nova-prioridade", "comum"]);
   });
   it("mantém a fila demonstrativa inteira na mesma regra", () => {
-    const fila = criarFilaDemonstrativa(148);
+    const fila = criarFila(148);
     expect(fila).toHaveLength(148);
     expect(fila.filter(p => p.urgente).map(p => p.chegada)).toEqual([4,17,30,43,56,69,82,95,108,121,134,147]);
     expect(fila.slice(0, 12).every(p => p.urgente)).toBe(true);

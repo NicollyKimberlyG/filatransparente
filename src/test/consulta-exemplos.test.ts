@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CPFS_EXEMPLO, nomeDemonstrativoPorDocumento } from "@/lib/consulta-exemplos";
+import { CPFS_EXEMPLO, nomeExemploPorDocumento } from "@/lib/consulta-exemplos";
 
 describe("CPFs de exemplo para consulta", () => {
   it("disponibiliza os doze exemplos fornecidos, preservando zeros iniciais", () => {
@@ -17,11 +17,11 @@ describe("CPFs de exemplo para consulta", () => {
       "Larissa Rocha", "Bruno Ribeiro", "Amanda Pereira", "Diego Carvalho",
     ];
     CPFS_EXEMPLO.forEach((cpf, indice) => {
-      expect(nomeDemonstrativoPorDocumento(cpf)).toBe(nomes[indice]);
-      expect(nomeDemonstrativoPorDocumento(cpf.replace(/\D/g, ""))).toBe(nomes[indice]);
+      expect(nomeExemploPorDocumento(cpf)).toBe(nomes[indice]);
+      expect(nomeExemploPorDocumento(cpf.replace(/\D/g, ""))).toBe(nomes[indice]);
     });
   });
   it("não associa o nome de outro exemplo a um documento desconhecido", () => {
-    expect(nomeDemonstrativoPorDocumento("00000000000")).toBe("Paciente demonstrativo");
+    expect(nomeExemploPorDocumento("00000000000")).toBe("Paciente");
   });
 });

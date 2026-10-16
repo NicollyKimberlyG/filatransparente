@@ -3,7 +3,7 @@ export type PacienteFila = { id: string; chegada: number; urgente: boolean };
 export function organizarFila<T extends PacienteFila>(pacientes: readonly T[]): T[] {
   return [...pacientes].sort((a, b) => Number(b.urgente) - Number(a.urgente) || a.chegada - b.chegada);
 }
-export function criarFilaDemonstrativa(total: number): PacienteFila[] {
+export function criarFila(total: number): PacienteFila[] {
   return organizarFila(Array.from({ length: total }, (_, i) => ({
     id: `paciente-${i + 1}`, chegada: i + 1, urgente: i % 13 === 3,
   })));
