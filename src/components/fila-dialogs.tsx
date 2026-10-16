@@ -12,7 +12,7 @@ import {
 
 export { UNIDADES, ESPECIALIDADES, unidadesDa } from "@/lib/unidades";
 import { ESPECIALIDADES, unidadesDa } from "@/lib/unidades";
-import { criarFilaDemonstrativa, pacientePorDocumento, type PacienteFila } from "@/lib/fila";
+import { criarFilaDemonstrativa, esperaEstimada, identificacaoPublica, pacientePorDocumento, sazonalidade, type PacienteFila } from "@/lib/fila";
 
 function FilaLista({ fila, minhaPosicao, nome }: { fila: PacienteFila[]; minhaPosicao: number; nome: string }) {
   const total = fila.length;
@@ -37,16 +37,16 @@ function FilaLista({ fila, minhaPosicao, nome }: { fila: PacienteFila[]; minhaPo
             key={p}
             aria-current={eu ? "true" : undefined}
             className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm ${
-              eu ? "border-primary bg-primary text-primary-foreground" : "bg-card"
+              eu ? "border-primary bg-primary text-primary-foreground" : paciente?.urgente ? "border-destructive/30 bg-destructive/10" : "bg-card"
             }`}
           >
             <span className="flex min-w-0 items-center gap-2 font-semibold">
               <span className="w-8 shrink-0 tabular-nums">{p}º</span>
               <UserRound className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span className="break-words">{eu ? `${nome} (Você)` : `Paciente ***${String(((paciente?.chegada ?? p) * 7919) % 1000).padStart(3, "0")}`}</span>
+              <span className="break-words">{eu ? `${nome} (Você)` : identificacaoPublica(paciente?.chegada ?? p)}</span>
             </span>
             <span className={`shrink-0 text-xs ${eu ? "" : "text-muted-foreground"}`}>
-              {paciente?.urgente ? "Urgência · Prioridade" : "Ordem de chegada"}
+              {paciente?.urgente ? <span className={`rounded px-1.5 py-0.5 font-semibold ${eu ? "" : "bg-destructive/15 text-destructive"}`}>Urgência · Prioridade</span> : "Ordem de chegada"}
             </span>
           </li>
         );
@@ -121,7 +121,7 @@ export function PosicaoDialog({
         <DialogHeader>
           <DialogTitle>Consultar minha posição</DialogTitle>
           <DialogDescription>
-            Consulta demonstrativa: nomes fictícios e posições simuladas, sem vínculo com cadastros reais do SUS.
+            Consulta demonstrativa: nomes fictícios e posições simuladas, sem vínculo com cadastros reais. Projeto acadêmico independente.
           </DialogDescription>
         </DialogHeader>
 
@@ -144,9 +144,9 @@ export function PosicaoDialog({
               posicao,
               total,
               vagas: selecionada.vagas,
-              espera: Math.max(1, Math.ceil((posicao / total) * selecionada.espera)),
+              espera: esperaEstimada(posicao, selecionada.vagas),
               unidade: selecionada.unidade.nome,
-              nome: nomeDemonstrativoPorDocumento(documento),
+              nome: identificacaoPublica(posicao, nomeDemonstrativoPorDocumento(documento)),
               documento: formatarCpfCns(documento),
             });
           }}
@@ -216,10 +216,7 @@ export function PosicaoDialog({
           <div className="mt-2 space-y-4" aria-live="polite">
             <div className="space-y-1 border-b pb-3" aria-label="Identificação da consulta">
               <p className="break-words font-semibold">{resultado.nome}</p>
-              <p className="text-sm text-muted-foreground">
-                {resultado.documento.replace(/\D/g, "").length === 11 ? "CPF" : "CNS"}: {resultado.documento}
-              </p>
-              <p className="text-xs text-muted-foreground">Nome fictício · Consulta demonstrativa</p>
+              <p className="text-xs text-muted-foreground">Por privacidade (LGPD), exibimos apenas iniciais e os 3 primeiros dígitos do cartão. Dados fictícios.</p>
             </div>
             <div className="grid grid-cols-3 gap-2 rounded-lg bg-muted p-3 text-center">
               <div>
@@ -238,6 +235,11 @@ export function PosicaoDialog({
             <p className="text-xs text-muted-foreground">
               {resultado.unidade} · {resultado.vagas} vagas por dia
             </p>
+            <div className="rounded-lg border bg-card p-3 text-sm">
+              <p className="font-semibold">Como calculamos a espera</p>
+              <p className="mt-1 font-mono text-xs">⌈ {resultado.posicao} posição ÷ {resultado.vagas} vagas/dia ⌉ = {resultado.espera} dias</p>
+              <p className="mt-1 text-xs text-muted-foreground">Estimativa matemática: posição na fila dividida pela capacidade diária, arredondada para cima.</p>
+            </div>
             <p className="text-xs text-muted-foreground">Urgências primeiro, por chegada. Depois, os demais pacientes por chegada. Classificação clínica simulada.</p>
             <FilaLista fila={resultado.fila} minhaPosicao={resultado.posicao} nome={resultado.nome} />
           </div>
@@ -271,6 +273,7 @@ export function EspecialidadeDialog({
           <DialogDescription>
             Dados demonstrativos · {lista.length} unidades disponíveis · {total} pessoas na fila · {vagas} vagas/dia
           </DialogDescription>
+          {vagas > 0 && <p className="font-mono text-xs text-muted-foreground">Tendência: {total} ÷ {vagas} vagas/dia ≈ {esperaEstimada(total, vagas)} dias</p>}
         </DialogHeader>
         <ul className="space-y-3">
           {lista.map((l, i) => (
@@ -310,6 +313,7 @@ export function EspecialidadeDialog({
             </li>
           ))}
         </ul>
+        {especialidade && <GraficoSazonal especialidade={especialidade} />}
         <Button
           onClick={() => especialidade && onConsultar(especialidade)}
           className="h-11 w-full rounded-lg bg-accent font-semibold text-accent-foreground hover:bg-accent/90"
@@ -318,5 +322,33 @@ export function EspecialidadeDialog({
         </Button>
       </DialogContent>
     </Dialog>
+  );
+}
+
+const MESES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+function GraficoSazonal({ especialidade }: { especialidade: string }) {
+  const [aberto, setAberto] = useState(false);
+  const dados = sazonalidade(especialidade);
+  const max = Math.max(...dados);
+  const pico = dados.indexOf(max);
+  return (
+    <div className="rounded-lg border bg-card p-3">
+      <Button variant="outline" className="w-full" aria-expanded={aberto} onClick={() => setAberto(v => !v)}>
+        {aberto ? "Ocultar gráfico de pico de espera" : "Ver gráfico de pico de espera"}
+      </Button>
+      {aberto && (
+        <figure className="mt-3">
+          <div className="flex h-32 items-end gap-1" role="img" aria-label={`Demanda mensal de ${especialidade}; pico em ${MESES[pico]}`}>
+            {dados.map((v, i) => (
+              <div key={MESES[i]} className="flex flex-1 flex-col items-center gap-1">
+                <div className={`w-full rounded-t ${i === pico ? "bg-destructive" : "bg-primary/70"}`} style={{ height: `${(v / max) * 100}%` }} title={`${MESES[i]}: índice ${v}`} />
+                <span className="text-[10px] text-muted-foreground">{MESES[i]}</span>
+              </div>
+            ))}
+          </div>
+          <figcaption className="mt-2 text-xs text-muted-foreground">Índice de fila por mês (simulado). Maior pico: {MESES[pico]}.</figcaption>
+        </figure>
+      )}
+    </div>
   );
 }
