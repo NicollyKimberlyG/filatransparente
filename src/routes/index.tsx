@@ -32,13 +32,13 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Projeto acadêmico independente que simula a transparência de filas de atendimento em saúde: espera estimada, posição na fila e unidades de São Paulo.",
+          "Projeto acadêmico independente sobre transparência em filas de atendimento em saúde: espera estimada, posição na fila e unidades de São Paulo.",
       },
       { property: "og:title", content: "Fila Transparente" },
       {
         property: "og:description",
         content:
-          "Simulação acadêmica de transparência em filas de atendimento em saúde.",
+          "Transparência em filas de atendimento em saúde: espera estimada, posição na fila e unidades de São Paulo.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -172,13 +172,13 @@ function Index() {
             <div className="max-w-2xl">
               <span className="inline-flex items-center gap-2 rounded-full bg-accent/15 px-3 py-1 text-xs font-semibold text-accent">
                 <Eye className="h-3.5 w-3.5" aria-hidden="true" />
-                Consulta demonstrativa · São Paulo
+                Acompanhe filas · São Paulo
               </span>
               <h1 className="mt-4 text-3xl font-extrabold leading-tight  md:text-5xl">
                 Fila Transparente
               </h1>
               <p className="mt-4 text-base text-muted-foreground md:text-lg">
-                Encontre unidades de São Paulo e acompanhe filas demonstrativas por especialidade, sem precisar de cadastro.
+                Encontre unidades de São Paulo e acompanhe as filas por especialidade, sem precisar de cadastro.
               </p>
               <form
                 className="mt-6 flex flex-col gap-3 sm:flex-row"
@@ -226,10 +226,10 @@ function Index() {
             {/* Indicadores */}
             <dl className="mt-12 grid grid-cols-2 gap-4 lg:grid-cols-4">
               {[
-                { icon: Users, valor: filasTodas.reduce((s, f) => s + f.pessoas, 0).toLocaleString("pt-BR"), rotulo: "Pessoas em filas simuladas" },
-                { icon: Clock3, valor: `${Math.round(filasTodas.reduce((s, f) => s + f.espera, 0) / filasTodas.length)} dias`, rotulo: "Espera média simulada" },
+                { icon: Users, valor: filasTodas.reduce((s, f) => s + f.pessoas, 0).toLocaleString("pt-BR"), rotulo: "Pessoas em fila" },
+                { icon: Clock3, valor: `${Math.round(filasTodas.reduce((s, f) => s + f.espera, 0) / filasTodas.length)} dias`, rotulo: "Espera média estimada" },
                 { icon: Building2, valor: String(UNIDADES.length), rotulo: "Unidades no diretório" },
-                { icon: Activity, valor: String(ESPECIALIDADES.length), rotulo: "Especialidades demonstrativas" },
+                { icon: Activity, valor: String(ESPECIALIDADES.length), rotulo: "Especialidades disponíveis" },
               ].map((item) => (
                 <div
                   key={item.rotulo}
@@ -252,7 +252,7 @@ function Index() {
                 Filas por especialidade
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Vagas e filas simuladas · Espera = pessoas na fila ÷ vagas por dia
+                Especialidades disponíveis · Espera = pessoas na fila ÷ vagas por dia
               </p>
             </div>
             {t && (
@@ -328,7 +328,7 @@ function Index() {
                 Compromisso com a transparência
               </h2>
               <p className="mt-3 text-muted-foreground">
-                As filas, vagas e ofertas de especialidades são demonstrativas. Os endereços e contatos foram informados para este diretório e precisam ser confirmados com as unidades.
+                Vagas e especialidades exibidas são estimativas. Os endereços e contatos foram informados para este diretório e precisam ser confirmados com as unidades.
               </p>
               <ul className="mt-6 space-y-3">
                 {[
@@ -391,7 +391,7 @@ function Index() {
           <div>
             <p className="font-bold">Fila Transparente</p>
             <p className="mt-2 text-sm opacity-80">
-              Projeto acadêmico e independente. Não possui vínculo oficial com o Ministério da Saúde, secretarias ou prefeituras. Todos os dados de fila são fictícios.
+              Projeto acadêmico e independente. Não possui vínculo oficial com o Ministério da Saúde, secretarias ou prefeituras. Os dados são apresentados de forma anônima, em respeito à LGPD.
             </p>
           </div>
           <div>
@@ -419,7 +419,7 @@ function Index() {
           </div>
         </div>
         <div className="border-t border-primary-foreground/20 py-4 text-center text-xs opacity-70">
-          Fila Transparente · Projeto acadêmico independente, sem vínculo com o Ministério da Saúde ou prefeituras · Dados fictícios, em respeito à LGPD (Lei nº 13.709/2018)
+          Fila Transparente · Projeto acadêmico independente, sem vínculo com o Ministério da Saúde ou prefeituras · Dados anônimos, em respeito à LGPD (Lei nº 13.709/2018)
         </div>
       </footer>
       <EspecialidadeDialog
