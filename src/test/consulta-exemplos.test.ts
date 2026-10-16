@@ -10,7 +10,7 @@ describe("CPFs de exemplo para consulta", () => {
       "472.471.698-34", "417.400.618-02", "547.018.618-04",
     ]);
   });
-  it("associa um nome fictício a cada CPF consultado, com ou sem formatação", () => {
+  it("associa um nome de exemplo a cada CPF consultado, com ou sem formatação", () => {
     const nomes = [
       "Mariana Costa", "Lucas Almeida", "Beatriz Santos", "Gabriel Oliveira",
       "Camila Ferreira", "Rafael Lima", "Juliana Martins", "Felipe Souza",
