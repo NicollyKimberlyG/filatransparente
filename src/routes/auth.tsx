@@ -33,6 +33,7 @@ function AuthPage() {
   const [senha, setSenha] = useState("");
   const [nome, setNome] = useState("");
   const [doc, setDoc] = useState("");
+  const [cns, setCns] = useState("");
   const [erro, setErro] = useState("");
   const [aviso, setAviso] = useState("");
   const [carregando, setCarregando] = useState(false);
@@ -43,7 +44,8 @@ function AuthPage() {
     if (modo === "criar") {
       const n = doc.replace(/\D/g, "").length;
       if (nome.trim().length < 3) return setErro("Informe seu nome completo.");
-      if (n !== 11 && n !== 15) return setErro("Informe um CPF (11 dígitos) ou CNS (15 dígitos).");
+      if (n !== 11) return setErro("Informe um CPF válido com 11 dígitos.");
+      if (cns.replace(/\D/g, "").length !== 15) return setErro("Informe o Cartão SUS (CNS) com 15 dígitos.");
     }
     setCarregando(true);
     if (modo === "entrar") {
@@ -54,9 +56,10 @@ function AuthPage() {
     } else {
       const { data, error } = await supabase.auth.signUp({
         email, password: senha,
-        options: { emailRedirectTo: window.location.origin + "/minhas-consultas", data: { nome: nome.trim(), documento: doc.replace(/\D/g, "") } },
+        options: { emailRedirectTo: window.location.origin + "/minhas-consultas", data: { nome: nome.trim(), documento: doc.replace(/\D/g, ""), cns: cns.replace(/\D/g, "") } },
       });
       setCarregando(false);
+      if (error && /database|saving/i.test(error.message)) return setErro("CPF e Cartão SUS não encontrados na rede de saúde. Use os mesmos dados do seu cadastro na unidade.");
       if (error) return setErro(error.message.includes("Password") ? "A senha precisa ter pelo menos 6 caracteres." : "Não foi possível criar a conta. Verifique os dados.");
       if (data.session) navigate({ to: "/minhas-consultas" });
       else setAviso("Conta criada! Enviamos um link de confirmação para o seu email. Depois de confirmar, entre aqui.");
@@ -76,7 +79,9 @@ function AuthPage() {
           {modo === "criar" && (
             <>
               <div className="space-y-1.5"><Label htmlFor="nome">Nome completo</Label><Input id="nome" value={nome} onChange={e => setNome(e.target.value)} autoComplete="name" required /></div>
-              <div className="space-y-1.5"><Label htmlFor="doc">CPF ou Cartão Nacional de Saúde (CNS)</Label><Input id="doc" inputMode="numeric" value={doc} onChange={e => setDoc(formatarDoc(e.target.value))} placeholder="000.000.000-00" required /></div>
+              <div className="space-y-1.5"><Label htmlFor="doc">CPF</Label><Input id="doc" inputMode="numeric" value={doc} onChange={e => setDoc(formatarDoc(e.target.value.replace(/\D/g, "").slice(0, 11)))} placeholder="000.000.000-00" required /></div>
+              <div className="space-y-1.5"><Label htmlFor="cns">Cartão SUS (CNS)</Label><Input id="cns" inputMode="numeric" value={cns} onChange={e => setCns(formatarDoc(e.target.value.replace(/\D/g, "").slice(0, 15).padEnd(12, "").length > 11 ? e.target.value : e.target.value))} placeholder="000 0000 0000 0000" required /></div>
+              <p className="text-xs text-muted-foreground">Só é possível criar conta com o CPF e o Cartão SUS cadastrados na rede de saúde.</p>
             </>
           )}
           <div className="space-y-1.5"><Label htmlFor="email">Email</Label><Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} autoComplete="email" required /></div>
