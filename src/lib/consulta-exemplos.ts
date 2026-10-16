@@ -19,8 +19,8 @@ const NOMES_FICTICIOS = [
   "Larissa Rocha", "Bruno Ribeiro", "Amanda Pereira", "Diego Carvalho",
 ] as const;
 
-export function nomeDemonstrativoPorDocumento(documento: string): string {
+export function nomeExemploPorDocumento(documento: string): string {
   const digitos = documento.replace(/\D/g, "");
   const indice = CPFS_EXEMPLO.findIndex((cpf) => cpf.replace(/\D/g, "") === digitos);
-  return NOMES_FICTICIOS[indice] ?? "Paciente demonstrativo";
+  return NOMES_FICTICIOS[indice] ?? "Paciente";
 }

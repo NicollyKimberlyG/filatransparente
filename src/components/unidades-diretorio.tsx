@@ -19,7 +19,7 @@ export function UnidadesDiretorio({ termo, onEspecialidade }: { termo: string; o
     <div className="mx-auto max-w-6xl px-4 py-12">
       <h2 className="text-2xl font-bold md:text-3xl">Unidades de saúde</h2>
       <p className="mt-2 text-sm text-muted-foreground">São Paulo · {UNIDADES.length} unidades · Contatos e endereços informados, não verificados.</p>
-      <p className="mt-1 text-xs text-muted-foreground">Especialidades, vagas e tempos de espera demonstrativos. Confirme a oferta com a unidade.</p>
+      <p className="mt-1 text-xs text-muted-foreground">Tempos de espera estimados. Confirme a oferta com a unidade.</p>
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <label className="text-sm font-medium">Buscar unidade
           <span className="relative mt-1 block"><Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" aria-hidden="true"/><input aria-label="Buscar no diretório de unidades" value={busca} onChange={e => {setBusca(e.target.value);setPagina(0);}} placeholder="Nome, bairro ou endereço" className="h-10 w-full rounded-lg border bg-card pl-9 pr-3" /></span>
@@ -36,7 +36,7 @@ export function UnidadesDiretorio({ termo, onEspecialidade }: { termo: string; o
           <span className="text-xs font-semibold text-primary">{u.tipo}</span><h4 className="mt-2 break-words font-bold">{u.nome}</h4>
           <p className="mt-3 flex items-start gap-2 text-sm text-muted-foreground"><MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true"/>{u.endereco}</p>
           {u.telefone && <a href={`tel:${u.telefone.replace(/\D/g, "")}`} className="mt-2 flex items-center gap-2 text-sm font-medium text-primary"><Phone className="h-4 w-4" aria-hidden="true"/>{u.telefone}</a>}
-          <details className="mt-4 border-t pt-3"><summary className="cursor-pointer text-sm font-semibold text-primary">Especialidades demonstrativas ({u.especialidades.length})</summary>{u.descricao && <p className="mt-3 text-xs text-muted-foreground">{u.descricao}</p>}<ul className="mt-2 space-y-1">{u.especialidades.map(e => <li key={e.nome}><Button variant="link" className="h-auto justify-start whitespace-normal px-0 py-1 text-left text-xs" onClick={() => onEspecialidade(e.nome)}>{e.nome} · {e.vagas} vagas/dia</Button></li>)}</ul></details>
+          <details className="mt-4 border-t pt-3"><summary className="cursor-pointer text-sm font-semibold text-primary">Especialidades ({u.especialidades.length})</summary>{u.descricao && <p className="mt-3 text-xs text-muted-foreground">{u.descricao}</p>}<ul className="mt-2 space-y-1">{u.especialidades.map(e => <li key={e.nome}><Button variant="link" className="h-auto justify-start whitespace-normal px-0 py-1 text-left text-xs" onClick={() => onEspecialidade(e.nome)}>{e.nome} · {e.vagas} vagas/dia</Button></li>)}</ul></details>
         </article>)}</div></div>;
       })}
       {paginas > 1 && <div className="mt-6 flex items-center justify-center gap-4"><Button variant="outline" size="icon" aria-label="Unidades anteriores" disabled={atual === 0} onClick={() => setPagina(atual - 1)}><ChevronLeft/></Button><span className="text-sm tabular-nums">{atual + 1} / {paginas}</span><Button variant="outline" size="icon" aria-label="Próximas unidades" disabled={atual === paginas - 1} onClick={() => setPagina(atual + 1)}><ChevronRight/></Button></div>}
