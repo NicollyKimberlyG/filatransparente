@@ -80,7 +80,7 @@ function AuthPage() {
             <>
               <div className="space-y-1.5"><Label htmlFor="nome">Nome completo</Label><Input id="nome" value={nome} onChange={e => setNome(e.target.value)} autoComplete="name" required /></div>
               <div className="space-y-1.5"><Label htmlFor="doc">CPF</Label><Input id="doc" inputMode="numeric" value={doc} onChange={e => setDoc(formatarDoc(e.target.value.replace(/\D/g, "").slice(0, 11)))} placeholder="000.000.000-00" required /></div>
-              <div className="space-y-1.5"><Label htmlFor="cns">Cartão SUS (CNS)</Label><Input id="cns" inputMode="numeric" value={cns} onChange={e => setCns(formatarDoc(e.target.value.replace(/\D/g, "").slice(0, 15).padEnd(12, "").length > 11 ? e.target.value : e.target.value))} placeholder="000 0000 0000 0000" required /></div>
+              <div className="space-y-1.5"><Label htmlFor="cns">Cartão SUS (CNS)</Label><Input id="cns" inputMode="numeric" value={cns} onChange={e => setCns(e.target.value.replace(/\D/g, "").slice(0, 15).replace(/(\d{3})(\d{0,4})(\d{0,4})(\d{0,4})/, "$1 $2 $3 $4").trim())} placeholder="000 0000 0000 0000" required /></div>
               <p className="text-xs text-muted-foreground">Só é possível criar conta com o CPF e o Cartão SUS cadastrados na rede de saúde.</p>
             </>
           )}
