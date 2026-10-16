@@ -158,6 +158,9 @@ function Index() {
             <Link to="/sobre" className="hover:text-primary">
               Sobre
             </Link>
+            <Link to={logado ? "/minhas-consultas" : "/auth"} className="hover:text-primary">
+              {logado ? "Minhas consultas" : "Entrar"}
+            </Link>
             <Button onClick={() => abrirPosicao()} className="rounded-lg bg-accent px-4 py-2 font-semibold text-accent-foreground transition-colors hover:bg-accent/90">
               Consultar minha posição
             </Button>
