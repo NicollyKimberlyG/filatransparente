@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { UnidadesDiretorio } from "@/components/unidades-diretorio";
 import { correspondeUnidade, normalizarBusca } from "@/lib/unidades";
@@ -96,6 +97,12 @@ function Index() {
   const [posicaoOpen, setPosicaoOpen] = useState(false);
   const [posicaoEsp, setPosicaoEsp] = useState<string | undefined>();
   const [todasEspecialidades, setTodasEspecialidades] = useState(false);
+  const [logado, setLogado] = useState(false);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setLogado(!!data.session));
+    const { data } = supabase.auth.onAuthStateChange((_e, s) => setLogado(!!s));
+    return () => data.subscription.unsubscribe();
+  }, []);
   const t = normalizarBusca(termo);
   const filas = filasTodas.filter(
     (f) =>
