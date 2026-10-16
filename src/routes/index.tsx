@@ -406,8 +406,8 @@ function Index() {
             <p className="font-semibold">Dados abertos</p>
             <ul className="mt-2 space-y-1 text-sm opacity-80">
               <li>
-                <a href="#" className="underline underline-offset-2">
-                  Baixar histórico (CSV)
+                <a href="#unidades" className="underline underline-offset-2">
+                  Diretório de unidades
                 </a>
               </li>
               <li>
