@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { UnidadesDiretorio } from "@/components/unidades-diretorio";
 import { correspondeUnidade, normalizarBusca } from "@/lib/unidades";
@@ -96,6 +97,12 @@ function Index() {
   const [posicaoOpen, setPosicaoOpen] = useState(false);
   const [posicaoEsp, setPosicaoEsp] = useState<string | undefined>();
   const [todasEspecialidades, setTodasEspecialidades] = useState(false);
+  const [logado, setLogado] = useState(false);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setLogado(!!data.session));
+    const { data } = supabase.auth.onAuthStateChange((_e, s) => setLogado(!!s));
+    return () => data.subscription.unsubscribe();
+  }, []);
   const t = normalizarBusca(termo);
   const filas = filasTodas.filter(
     (f) =>
@@ -157,6 +164,9 @@ function Index() {
             </a>
             <Link to="/sobre" className="hover:text-primary">
               Sobre
+            </Link>
+            <Link to={logado ? "/minhas-consultas" : "/auth"} className="hover:text-primary">
+              {logado ? "Minhas consultas" : "Entrar"}
             </Link>
             <Button onClick={() => abrirPosicao()} className="rounded-lg bg-accent px-4 py-2 font-semibold text-accent-foreground transition-colors hover:bg-accent/90">
               Consultar minha posição
