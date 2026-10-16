@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
-import { HeartPulse } from "lucide-react";
+import { ArrowLeft, HeartPulse } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,6 +69,9 @@ function AuthPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-secondary px-4 py-10">
       <div className="w-full max-w-md rounded-2xl border bg-card p-8 shadow-sm">
+        <Link to="/" className="mb-4 inline-flex items-center gap-2 rounded-lg border bg-secondary px-3 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted">
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Voltar para a página inicial
+        </Link>
         <Link to="/" className="mb-6 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground"><HeartPulse className="h-5 w-5" aria-hidden="true" /></div>
           <span className="text-lg font-bold">Fila Transparente</span>
@@ -93,6 +96,9 @@ function AuthPage() {
         <button type="button" className="mt-4 w-full text-sm text-primary underline-offset-2 hover:underline" onClick={() => { setModo(modo === "entrar" ? "criar" : "entrar"); setErro(""); setAviso(""); }}>
           {modo === "entrar" ? "Não tem conta? Criar conta" : "Já tem conta? Entrar"}
         </button>
+        <Link to="/" className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-muted">
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Voltar para a página inicial
+        </Link>
         <p className="mt-6 text-xs text-muted-foreground">Projeto acadêmico independente, sem vínculo oficial com o Ministério da Saúde ou prefeituras.</p>
       </div>
     </div>
