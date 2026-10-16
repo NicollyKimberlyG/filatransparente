@@ -79,7 +79,7 @@ export const UNIDADES: Unidade[] = diretorio.split("\n").map((linha, i) => {
   const [tipoTexto = "UBS", bairro = "", nome = "", endereco = "", telefone, descricao] = linha.split("|");
   const tipo = tipoTexto as Unidade["tipo"];
   return { nome, tipo, bairro, endereco, telefone: telefone || undefined, descricao,
-    especialidades: ofertas[tipo].map((nome, j) => ({ nome, vagas: 3 + (i + j) % 14, naFila: 35 + (i * 17 + j * 23) % 230, espera: 3 + (i * 3 + j * 7) % 40 })),
+    especialidades: ofertas[tipo].map((nome, j) => ({ nome, vagas: 3 + (i + j) % 14, naFila: 35 + (i * 17 + j * 23) % 230, espera: 0 })).map(e => ({ ...e, espera: Math.ceil(e.naFila / e.vagas) })),
   };
 });
 export const REGIOES = ["Centro", "Zona Sul", "Zona Leste", "Zona Norte", "Zona Oeste"];
@@ -93,3 +93,9 @@ export function normalizarBusca(valor: string) {
 export function correspondeUnidade(u: Unidade, termo: string) {
   return normalizarBusca([u.nome, u.tipo, u.bairro, u.endereco, ...u.especialidades.map(e => e.nome)].join(" ")).includes(normalizarBusca(termo));
 }
+
+/** Neighbourhood taken from the address ("Rua X, 10 - Bairro"). */
+export function distritoDe(u: Unidade) {
+  return u.endereco.split(" - ").pop()?.trim() ?? "";
+}
+export const DISTRITOS = Array.from(new Set(UNIDADES.map(distritoDe))).sort((a, b) => a.localeCompare(b, "pt-BR"));
