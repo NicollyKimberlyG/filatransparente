@@ -16,22 +16,40 @@ export type Database = {
     Tables: {
       profiles: {
         Row: {
+          cns: string
           created_at: string
           documento: string
           id: string
           nome: string
         }
         Insert: {
+          cns?: string
           created_at?: string
           documento?: string
           id: string
           nome?: string
         }
         Update: {
+          cns?: string
           created_at?: string
           documento?: string
           id?: string
           nome?: string
+        }
+        Relationships: []
+      }
+      rede_pacientes: {
+        Row: {
+          cns: string
+          cpf: string
+        }
+        Insert: {
+          cns: string
+          cpf: string
+        }
+        Update: {
+          cns?: string
+          cpf?: string
         }
         Relationships: []
       }

@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { LogIn } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { UnidadesDiretorio } from "@/components/unidades-diretorio";
@@ -165,13 +166,14 @@ function Index() {
             <Link to="/sobre" className="hover:text-primary">
               Sobre
             </Link>
-            <Link to={logado ? "/minhas-consultas" : "/auth"} className="hover:text-primary">
-              {logado ? "Minhas consultas" : "Entrar"}
-            </Link>
             <Button onClick={() => abrirPosicao()} className="rounded-lg bg-accent px-4 py-2 font-semibold text-accent-foreground transition-colors hover:bg-accent/90">
               Consultar minha posição
             </Button>
           </nav>
+          <Link to={logado ? "/minhas-consultas" : "/auth"} className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-md ring-2 ring-primary/30 ring-offset-2 ring-offset-card transition hover:bg-primary/90 hover:shadow-lg focus-visible:outline-none focus-visible:ring-4">
+            <LogIn className="h-4 w-4" aria-hidden="true" />
+            {logado ? "Minhas consultas" : "Entrar"}
+          </Link>
         </div>
       </header>
 
