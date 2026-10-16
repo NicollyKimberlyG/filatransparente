@@ -59,7 +59,7 @@ function AuthPage() {
         options: { emailRedirectTo: window.location.origin + "/minhas-consultas", data: { nome: nome.trim(), documento: doc.replace(/\D/g, ""), cns: cns.replace(/\D/g, "") } },
       });
       setCarregando(false);
-      if (error && /database|saving/i.test(error.message)) return setErro("CPF e Cartão SUS não encontrados na rede de saúde. Use os mesmos dados do seu cadastro na unidade.");
+      if (error && /database|saving|fora_da_rede/i.test(error.message)) return setErro("CPF e Cartão SUS não encontrados na rede de saúde. Use os mesmos dados do seu cadastro na unidade.");
       if (error) return setErro(error.message.includes("Password") ? "A senha precisa ter pelo menos 6 caracteres." : "Não foi possível criar a conta. Verifique os dados.");
       if (data.session) navigate({ to: "/minhas-consultas" });
       else setAviso("Conta criada! Enviamos um link de confirmação para o seu email. Depois de confirmar, entre aqui.");
