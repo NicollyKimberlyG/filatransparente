@@ -1,8 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { UnidadesDiretorio } from "@/components/unidades-diretorio";
 import { correspondeUnidade, normalizarBusca } from "@/lib/unidades";
+import { esperaEstimada } from "@/lib/fila";
 import {
   ESPECIALIDADES,
   EspecialidadeDialog,
@@ -27,17 +28,17 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "SUS Fila Transparente — Acompanhe filas de atendimento em tempo real" },
+      { title: "Fila Transparente — Filas de atendimento em saúde (projeto acadêmico)" },
       {
         name: "description",
         content:
-          "Visualize publicamente as filas de atendimento médico do SUS: tempo de espera, posição na fila e transparência total para cidadãos e gestores.",
+          "Projeto acadêmico independente que simula a transparência de filas de atendimento em saúde: espera estimada, posição na fila e unidades de São Paulo.",
       },
-      { property: "og:title", content: "SUS Fila Transparente" },
+      { property: "og:title", content: "Fila Transparente" },
       {
         property: "og:description",
         content:
-          "Transparência pública das filas de atendimento médico do SUS, em tempo real.",
+          "Simulação acadêmica de transparência em filas de atendimento em saúde.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -53,7 +54,8 @@ function nivelDe(espera: number) {
 const filasTodas = ESPECIALIDADES.map((esp) => {
   const l = unidadesDa(esp);
   const pessoas = l.reduce((s, x) => s + x.naFila, 0);
-  const espera = Math.round(l.reduce((s, x) => s + x.espera * x.naFila, 0) / pessoas);
+  const vagasDia = l.reduce((s, x) => s + x.vagas, 0);
+  const espera = esperaEstimada(pessoas, vagasDia);
   return { especialidade: esp, unidades: l, pessoas, espera, vagas: l.reduce((s, x) => s + x.vagas, 0), nivel: nivelDe(espera) };
 });
 
@@ -118,7 +120,7 @@ function Index() {
       {/* Barra de acessibilidade */}
       <div className="bg-primary text-primary-foreground">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-2 text-xs font-medium">
-          <span>Governo Municipal · Secretaria de Saúde</span>
+          <span>Projeto acadêmico independente · Sem vínculo oficial com órgãos públicos</span>
           <div className="flex items-center gap-4">
             <a href="#conteudo" className="underline underline-offset-2">
               Ir para o conteúdo
@@ -137,7 +139,7 @@ function Index() {
               <HeartPulse className="h-6 w-6" aria-hidden="true" />
             </div>
             <div>
-              <p className="text-lg font-bold leading-tight">SUS Fila Transparente</p>
+              <p className="text-lg font-bold leading-tight">Fila Transparente</p>
               <p className="text-xs text-muted-foreground">
                 Transparência pública em saúde
               </p>
@@ -153,6 +155,9 @@ function Index() {
             <a href="#transparencia" className="hover:text-primary">
               Transparência
             </a>
+            <Link to="/sobre" className="hover:text-primary">
+              Sobre
+            </Link>
             <Button onClick={() => abrirPosicao()} className="rounded-lg bg-accent px-4 py-2 font-semibold text-accent-foreground transition-colors hover:bg-accent/90">
               Consultar minha posição
             </Button>
@@ -170,7 +175,7 @@ function Index() {
                 Consulta demonstrativa · São Paulo
               </span>
               <h1 className="mt-4 text-3xl font-extrabold leading-tight  md:text-5xl">
-                SUS Fila Transparente
+                Fila Transparente
               </h1>
               <p className="mt-4 text-base text-muted-foreground md:text-lg">
                 Encontre unidades de São Paulo e acompanhe filas demonstrativas por especialidade, sem precisar de cadastro.
@@ -247,7 +252,7 @@ function Index() {
                 Filas por especialidade
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Vagas e filas simuladas · Sem vínculo com cadastros reais do SUS
+                Vagas e filas simuladas · Espera = pessoas na fila ÷ vagas por dia
               </p>
             </div>
             {t && (
@@ -328,8 +333,8 @@ function Index() {
               <ul className="mt-6 space-y-3">
                 {[
                   "Outros pacientes aparecem sem nome ou documento",
-                  "Nomes fictícios exibidos somente após a consulta",
-                  "Sem acesso a prontuários ou filas reais do SUS",
+                  "Pacientes exibidos só com iniciais e 3 dígitos do cartão (LGPD)",
+                  "Sem acesso a prontuários ou filas reais",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-3 text-sm">
                     <ShieldCheck
@@ -361,6 +366,20 @@ function Index() {
                   </li>
                 ))}
               </ol>
+              <details className="mt-6 rounded-lg border bg-card p-4">
+                <summary className="cursor-pointer text-sm font-semibold text-primary">Dúvidas: qual unidade procurar?</summary>
+                <dl className="mt-3 space-y-3 text-sm">
+                  {[
+                    ["Quando devo ir a uma UBS?", "Para consultas de rotina, vacinas, acompanhamento de doenças crônicas e encaminhamentos. É a porta de entrada da rede."],
+                    ["O que faz uma UPA 24h?", "Atende urgências de média complexidade, como febre alta, cortes, falta de ar e dores fortes, a qualquer hora."],
+                    ["O que é um AME?", "Ambulatório Médico de Especialidades: consultas com especialistas e exames, mediante encaminhamento da UBS."],
+                    ["E a AMA Especialidades?", "Unidade municipal com consultas especializadas e exames, também por encaminhamento."],
+                    ["Quando procurar um hospital?", "Emergências graves, cirurgias e internações. Em risco de vida, ligue para o SAMU 192."],
+                  ].map(([q, r]) => (
+                    <div key={q}><dt className="font-semibold">{q}</dt><dd className="mt-0.5 text-muted-foreground">{r}</dd></div>
+                  ))}
+                </dl>
+              </details>
             </div>
           </div>
         </section>
@@ -370,9 +389,9 @@ function Index() {
       <footer className="bg-primary text-primary-foreground">
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 md:grid-cols-3">
           <div>
-            <p className="font-bold">SUS Fila Transparente</p>
+            <p className="font-bold">Fila Transparente</p>
             <p className="mt-2 text-sm opacity-80">
-              Portal público de transparência das filas de atendimento em saúde.
+              Projeto acadêmico e independente. Não possui vínculo oficial com o Ministério da Saúde, secretarias ou prefeituras. Todos os dados de fila são fictícios.
             </p>
           </div>
           <div>
@@ -392,15 +411,15 @@ function Index() {
                 </a>
               </li>
               <li>
-                <a href="#" className="underline underline-offset-2">
-                  Metodologia de cálculo
-                </a>
+                <Link to="/sobre" className="underline underline-offset-2">
+                  Sobre o projeto e metodologia
+                </Link>
               </li>
             </ul>
           </div>
         </div>
         <div className="border-t border-primary-foreground/20 py-4 text-center text-xs opacity-70">
-          Prefeitura Municipal · Secretaria de Saúde · Lei de Acesso à Informação nº 12.527/2011
+          Fila Transparente · Projeto acadêmico independente, sem vínculo com o Ministério da Saúde ou prefeituras · Dados fictícios, em respeito à LGPD (Lei nº 13.709/2018)
         </div>
       </footer>
       <EspecialidadeDialog
