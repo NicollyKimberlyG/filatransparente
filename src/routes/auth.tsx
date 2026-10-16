@@ -96,6 +96,9 @@ function AuthPage() {
         <button type="button" className="mt-4 w-full text-sm text-primary underline-offset-2 hover:underline" onClick={() => { setModo(modo === "entrar" ? "criar" : "entrar"); setErro(""); setAviso(""); }}>
           {modo === "entrar" ? "Não tem conta? Criar conta" : "Já tem conta? Entrar"}
         </button>
+        <Link to="/" className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-muted">
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Voltar para a página inicial
+        </Link>
         <p className="mt-6 text-xs text-muted-foreground">Projeto acadêmico independente, sem vínculo oficial com o Ministério da Saúde ou prefeituras.</p>
       </div>
     </div>
