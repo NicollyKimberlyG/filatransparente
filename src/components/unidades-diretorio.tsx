@@ -1,16 +1,17 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, MapPin, Phone, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { UNIDADES, REGIOES, correspondeUnidade } from "@/lib/unidades";
+import { UNIDADES, REGIOES, DISTRITOS, correspondeUnidade, distritoDe, normalizarBusca } from "@/lib/unidades";
 
 export function UnidadesDiretorio({ termo, onEspecialidade }: { termo: string; onEspecialidade: (nome: string) => void }) {
   const [busca, setBusca] = useState("");
   const [regiao, setRegiao] = useState("");
   const [tipo, setTipo] = useState("");
+  const [distrito, setDistrito] = useState("");
   const [pagina, setPagina] = useState(0);
   const [anterior, setAnterior] = useState(termo);
   if (anterior !== termo) { setAnterior(termo); setPagina(0); }
-  const lista = UNIDADES.filter(u => correspondeUnidade(u, termo) && correspondeUnidade(u, busca) && (!regiao || u.bairro === regiao) && (!tipo || u.tipo === tipo));
+  const lista = UNIDADES.filter(u => correspondeUnidade(u, termo) && correspondeUnidade(u, busca) && (!regiao || u.bairro === regiao) && (!tipo || u.tipo === tipo) && (!distrito || normalizarBusca(distritoDe(u)).includes(normalizarBusca(distrito))));
   const paginas = Math.max(1, Math.ceil(lista.length / 6));
   const atual = Math.min(pagina, paginas - 1);
   const visiveis = lista.slice(atual * 6, atual * 6 + 6);
@@ -19,10 +20,11 @@ export function UnidadesDiretorio({ termo, onEspecialidade }: { termo: string; o
       <h2 className="text-2xl font-bold md:text-3xl">Unidades de saúde</h2>
       <p className="mt-2 text-sm text-muted-foreground">São Paulo · {UNIDADES.length} unidades · Contatos e endereços informados, não verificados.</p>
       <p className="mt-1 text-xs text-muted-foreground">Especialidades, vagas e tempos de espera demonstrativos. Confirme a oferta com a unidade.</p>
-      <div className="mt-6 grid gap-3 sm:grid-cols-3">
+      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <label className="text-sm font-medium">Buscar unidade
           <span className="relative mt-1 block"><Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" aria-hidden="true"/><input aria-label="Buscar no diretório de unidades" value={busca} onChange={e => {setBusca(e.target.value);setPagina(0);}} placeholder="Nome, bairro ou endereço" className="h-10 w-full rounded-lg border bg-card pl-9 pr-3" /></span>
         </label>
+        <label className="text-sm font-medium">Bairro / distrito<input list="distritos" aria-label="Filtrar por bairro" value={distrito} onChange={e => {setDistrito(e.target.value);setPagina(0);}} placeholder="Ex.: Santo Amaro, Lapa" className="mt-1 h-10 w-full rounded-lg border bg-card px-3" /><datalist id="distritos">{DISTRITOS.map(d => <option key={d} value={d} />)}</datalist></label>
         <label className="text-sm font-medium">Região<select aria-label="Região" value={regiao} onChange={e => {setRegiao(e.target.value);setPagina(0);}} className="mt-1 h-10 w-full rounded-lg border bg-card px-3"><option value="">Todas as regiões</option>{REGIOES.map(r => <option key={r}>{r}</option>)}</select></label>
         <label className="text-sm font-medium">Tipo de unidade<select aria-label="Tipo de unidade" value={tipo} onChange={e => {setTipo(e.target.value);setPagina(0);}} className="mt-1 h-10 w-full rounded-lg border bg-card px-3"><option value="">Todos os tipos</option>{["UBS", "UPA 24h", "Hospital", "AME", "AMA Especialidades"].map(r => <option key={r}>{r}</option>)}</select></label>
       </div>
