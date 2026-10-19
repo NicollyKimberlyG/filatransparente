@@ -1,4 +1,4 @@
 - [x] Aplicar ordem de chegada com urgências em sequência e testar a regra.
 - [x] Incluir diretório informado e ampliar especialidades demonstrativas.
 - [x] Adicionar filtros e paginação para manter a página enxuta.
-- [x] Conferir consulta, filtros e visual em tela ampla e estreita.
+- [x] Conferir consulta, filtros e visual em tela ampla e estreita.- [x] Adicionar botão para sair da tela de entrar e voltar à página inicial.
