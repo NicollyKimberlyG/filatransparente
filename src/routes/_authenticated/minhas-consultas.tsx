@@ -1,5 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { unidadesDa, ESPECIALIDADES } from "@/lib/unidades";
 import { CalendarClock, HeartPulse, LogOut, MapPin, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -17,12 +19,41 @@ export const Route = createFileRoute("/_authenticated/minhas-consultas")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
+  validateSearch: (s: Record<string, unknown>): { agendar?: string } =>
+    typeof s["agendar"] === "string" ? { agendar: s["agendar"] } : {},
   component: MinhasConsultas,
 });
 
 function MinhasConsultas() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { agendar } = Route.useSearch();
+  const [esp, setEsp] = useState(agendar ?? "");
+  const [unidadeSel, setUnidadeSel] = useState("");
+  const [agendados, setAgendados] = useState<{ especialidade: string; unidade: string; bairro: string; tipo: string; posicao: number; total: number; vagas: number; espera: number }[]>([]);
+  const [msg, setMsg] = useState("");
+  const [uid, setUid] = useState("");
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      const id = data.user?.id ?? "";
+      setUid(id);
+      try { setAgendados(JSON.parse(localStorage.getItem("agendamentos:" + id) ?? "[]")); } catch { /* vazio */ }
+    });
+  }, []);
+  useEffect(() => { if (agendar) setEsp(agendar); }, [agendar]);
+  const opcoes = esp ? unidadesDa(esp) : [];
+  function confirmar() {
+    const o = opcoes.find(x => x.unidade.nome === unidadeSel) ?? opcoes[0];
+    if (!o) return;
+    const posicao = o.naFila + 1;
+    const novo = { especialidade: esp, unidade: o.unidade.nome, bairro: o.unidade.bairro, tipo: o.unidade.tipo, posicao, total: posicao, vagas: o.vagas, espera: Math.ceil(posicao / o.vagas) };
+    const lista = [...agendados.filter(a => a.especialidade !== esp), novo];
+    setAgendados(lista);
+    localStorage.setItem("agendamentos:" + uid, JSON.stringify(lista));
+    setMsg(`Consulta de ${esp} agendada em ${o.unidade.nome}. Você entrou na fila na posição ${posicao}º.`);
+    setEsp(""); setUnidadeSel("");
+    navigate({ to: "/minhas-consultas", search: {}, replace: true });
+  }
   const { data: perfil, isLoading } = useQuery({
     queryKey: ["perfil"],
     queryFn: async () => {
@@ -39,7 +70,8 @@ function MinhasConsultas() {
     navigate({ to: "/auth", replace: true });
   }
 
-  const consultas = perfil ? consultasDaConta(perfil.documento) : [];
+  const base = perfil ? consultasDaConta(perfil.documento) : [];
+  const consultas = [...base.filter(c => !agendados.some(a => a.especialidade === c.especialidade)), ...agendados];
   const seed = Number((perfil?.documento ?? "0").slice(-4)) || 1;
 
   return (
@@ -60,6 +92,21 @@ function MinhasConsultas() {
             Olá, {perfil.nome.split(" ")[0] || "paciente"} · <span className="font-medium">{identificacaoPublica(seed, perfil.nome || undefined)}</span>
           </p>
         )}
+        <section aria-labelledby="agendar-titulo" className="mt-8 rounded-2xl border border-primary/30 bg-secondary p-6">
+          <h2 id="agendar-titulo" className="text-xl font-bold">Agendar consulta</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Escolha a especialidade e a unidade. A unidade com menor espera aparece primeiro.</p>
+          <div className="mt-4 grid gap-3 md:grid-cols-[1fr_1fr_auto]">
+            <select aria-label="Especialidade" value={esp} onChange={e => { setEsp(e.target.value); setUnidadeSel(""); }} className="h-11 rounded-lg border bg-card px-3 text-sm">
+              <option value="">Selecione a especialidade</option>
+              {ESPECIALIDADES.map(n => <option key={n} value={n}>{n}</option>)}
+            </select>
+            <select aria-label="Unidade" value={unidadeSel} onChange={e => setUnidadeSel(e.target.value)} disabled={!esp} className="h-11 rounded-lg border bg-card px-3 text-sm disabled:opacity-50">
+              {opcoes.map(o => <option key={o.unidade.nome} value={o.unidade.nome}>{o.unidade.nome} · {o.vagas} vagas/dia · ~{Math.ceil((o.naFila + 1) / o.vagas)} dias</option>)}
+            </select>
+            <Button onClick={confirmar} disabled={!esp || opcoes.length === 0} className="h-11">Confirmar agendamento</Button>
+          </div>
+          {msg && <p role="status" className="mt-3 text-sm font-medium text-primary">{msg}</p>}
+        </section>
         {isLoading && <p className="mt-8 text-muted-foreground">Carregando...</p>}
         <ul className="mt-8 grid gap-4">
           {consultas.map(c => (
