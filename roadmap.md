@@ -2,3 +2,4 @@
 - [x] Incluir diretório informado e ampliar especialidades demonstrativas.
 - [x] Adicionar filtros e paginação para manter a página enxuta.
 - [x] Conferir consulta, filtros e visual em tela ampla e estreita.- [x] Adicionar botão para sair da tela de entrar e voltar à página inicial.
+- [x] Mover a consulta de posição da página inicial para dentro da tela "Entrar".
