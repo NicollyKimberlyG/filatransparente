@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { LogIn } from "lucide-react";
+import { LogIn, CalendarPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { UnidadesDiretorio } from "@/components/unidades-diretorio";
@@ -147,7 +147,7 @@ function Index() {
           </div>
           <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
             <a href="#filas" className="hover:text-primary">
-              Filas
+              Vagas disponíveis
             </a>
             <a href="#unidades" className="hover:text-primary">
               Unidades
@@ -270,12 +270,14 @@ function Index() {
           )}
           <div className="mt-8 grid gap-4 md:grid-cols-2">
             {filasVisiveis.map((fila) => (
-              <Button
-                type="button"
+              <div
+                role="button"
+                tabIndex={0}
                 key={fila.especialidade}
                 onClick={() => setEspAberta(fila.especialidade)}
-                aria-label={`Ver unidades e fila de ${fila.especialidade}`}
-                variant="outline" className="h-auto min-w-0 flex-col items-stretch whitespace-normal rounded-lg border bg-card p-5 text-left shadow-sm hover:bg-card hover:border-primary"
+                onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); setEspAberta(fila.especialidade); } }}
+                aria-label={`Ver vagas de ${fila.especialidade}`}
+                className="flex min-w-0 cursor-pointer flex-col rounded-lg border bg-card p-5 text-left shadow-sm transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
@@ -317,7 +319,7 @@ function Index() {
                     <CalendarPlus className="h-4 w-4" aria-hidden="true" /> Agendar consulta
                   </Link>
                 </div>
-              </Button>
+              </div>
             ))}
           </div>
           {!t && <div className="mt-6 flex justify-center"><Button variant="outline" onClick={() => setTodasEspecialidades(v => !v)}>{todasEspecialidades ? "Mostrar principais" : `Ver todas as especialidades (${ESPECIALIDADES.length})`}</Button></div>}
