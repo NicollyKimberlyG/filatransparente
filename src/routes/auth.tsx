@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PosicaoDialog } from "@/components/fila-dialogs";
+import { entrarComDocumento } from "@/lib/login-documento.functions";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -18,6 +19,8 @@ export const Route = createFileRoute("/auth")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
+  validateSearch: (s: Record<string, unknown>): { agendar?: string } =>
+    typeof s.agendar === "string" ? { agendar: s.agendar } : {},
   component: AuthPage,
 });
 
@@ -29,6 +32,8 @@ function formatarDoc(v: string) {
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { agendar } = Route.useSearch();
+  const destino = () => navigate({ to: "/minhas-consultas", search: agendar ? { agendar } : {} });
   const [modo, setModo] = useState<"entrar" | "criar">("entrar");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -51,10 +56,24 @@ function AuthPage() {
     }
     setCarregando(true);
     if (modo === "entrar") {
-      const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
-      setCarregando(false);
-      if (error) return setErro("Email ou senha incorretos, ou email ainda não confirmado.");
-      navigate({ to: "/minhas-consultas" });
+      const ident = email.trim();
+      const digitos = ident.replace(/\D/g, "");
+      if (ident.includes("@")) {
+        const { error } = await supabase.auth.signInWithPassword({ email: ident, password: senha });
+        setCarregando(false);
+        if (error) return setErro("Email ou senha incorretos, ou email ainda não confirmado.");
+      } else if (digitos.length === 11 || digitos.length === 15) {
+        try {
+          const r = await entrarComDocumento({ data: { documento: digitos, senha } });
+          if (!r.ok) { setCarregando(false); return setErro("CPF/Cartão SUS ou senha incorretos."); }
+          await supabase.auth.setSession({ access_token: r.access_token, refresh_token: r.refresh_token });
+        } catch { setCarregando(false); return setErro("Não foi possível entrar agora. Tente novamente."); }
+        setCarregando(false);
+      } else {
+        setCarregando(false);
+        return setErro("Informe um email, um CPF (11 dígitos) ou um Cartão SUS (15 dígitos).");
+      }
+      destino();
     } else {
       const { data, error } = await supabase.auth.signUp({
         email, password: senha,
@@ -63,7 +82,7 @@ function AuthPage() {
       setCarregando(false);
       if (error && /database|saving|fora_da_rede/i.test(error.message)) return setErro("CPF e Cartão SUS não encontrados na rede de saúde. Use os mesmos dados do seu cadastro na unidade.");
       if (error) return setErro(error.message.includes("Password") ? "A senha precisa ter pelo menos 6 caracteres." : "Não foi possível criar a conta. Verifique os dados.");
-      if (data.session) navigate({ to: "/minhas-consultas" });
+      if (data.session) destino();
       else setAviso("Conta criada! Enviamos um link de confirmação para o seu email. Depois de confirmar, entre aqui.");
     }
   }
@@ -80,6 +99,7 @@ function AuthPage() {
         </Link>
         <h1 className="text-2xl font-bold">{modo === "entrar" ? "Entrar na sua conta" : "Criar conta"}</h1>
         <p className="mt-1 text-sm text-muted-foreground">Veja apenas as suas consultas, sua posição e os dias de espera.</p>
+        {agendar && <p role="status" className="mt-4 rounded-lg border border-primary/30 bg-secondary p-3 text-sm">Entre na sua conta para agendar <strong>{agendar}</strong>.</p>}
         <form onSubmit={enviar} className="mt-6 space-y-4">
           {modo === "criar" && (
             <>
@@ -89,7 +109,15 @@ function AuthPage() {
               <p className="text-xs text-muted-foreground">Só é possível criar conta com o CPF e o Cartão SUS cadastrados na rede de saúde.</p>
             </>
           )}
-          <div className="space-y-1.5"><Label htmlFor="email">Email</Label><Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} autoComplete="email" required /></div>
+          {modo === "entrar" ? (
+            <div className="space-y-1.5">
+              <Label htmlFor="email">Email, CPF ou Cartão SUS</Label>
+              <Input id="email" value={email} onChange={e => setEmail(e.target.value)} autoComplete="username" placeholder="seu@email.com ou 000.000.000-00" required />
+              <p className="text-xs text-muted-foreground">Para entrar é preciso ter cadastro feito na sua UBS.</p>
+            </div>
+          ) : (
+            <div className="space-y-1.5"><Label htmlFor="email">Email</Label><Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} autoComplete="email" required /></div>
+          )}
           <div className="space-y-1.5"><Label htmlFor="senha">Senha</Label><Input id="senha" type="password" minLength={6} value={senha} onChange={e => setSenha(e.target.value)} autoComplete={modo === "entrar" ? "current-password" : "new-password"} required /></div>
           {erro && <p role="alert" className="text-sm font-medium text-destructive">{erro}</p>}
           {aviso && <p role="status" className="rounded-lg bg-secondary p-3 text-sm">{aviso}</p>}

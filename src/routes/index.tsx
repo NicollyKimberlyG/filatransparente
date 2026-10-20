@@ -239,15 +239,15 @@ function Index() {
           </div>
         </section>
 
-        {/* Filas por especialidade */}
+        {/* Vagas disponíveis */}
         <section id="filas" className="scroll-mt-24 mx-auto max-w-6xl px-4 py-14">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 className="text-2xl font-bold md:text-3xl">
-                Filas por especialidade
+                Vagas disponíveis
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Especialidades disponíveis · Espera = pessoas na fila ÷ vagas por dia
+                Escolha a especialidade e agende sua consulta · Espera = pessoas na fila ÷ vagas por dia
               </p>
             </div>
             {t && (
@@ -306,7 +306,17 @@ function Index() {
                     <p className="mt-0.5 truncate font-bold">{fila.unidades[0]?.unidade.tipo} · {fila.unidades[0]?.espera}d</p>
                   </div>
                 </div>
-                <p className="mt-3 text-xs font-semibold text-primary">Ver unidades disponíveis →</p>
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-primary">Ver unidades disponíveis →</span>
+                  <Link
+                    to={logado ? "/minhas-consultas" : "/auth"}
+                    search={{ agendar: fila.especialidade }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                  >
+                    <CalendarPlus className="h-4 w-4" aria-hidden="true" /> Agendar consulta
+                  </Link>
+                </div>
               </Button>
             ))}
           </div>
