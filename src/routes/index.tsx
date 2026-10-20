@@ -9,7 +9,6 @@ import { esperaEstimada } from "@/lib/fila";
 import {
   ESPECIALIDADES,
   EspecialidadeDialog,
-  PosicaoDialog,
   UNIDADES,
   unidadesDa,
 } from "@/components/fila-dialogs";
@@ -95,8 +94,6 @@ function Index() {
   const [busca, setBusca] = useState("");
   const [termo, setTermo] = useState("");
   const [espAberta, setEspAberta] = useState<string | null>(null);
-  const [posicaoOpen, setPosicaoOpen] = useState(false);
-  const [posicaoEsp, setPosicaoEsp] = useState<string | undefined>();
   const [todasEspecialidades, setTodasEspecialidades] = useState(false);
   const [logado, setLogado] = useState(false);
   useEffect(() => {
@@ -113,11 +110,6 @@ function Index() {
   );
   const principais = ["Clínica Geral", "Pediatria", "Ginecologia", "Cardiologia", "Ortopedia", "Oftalmologia"];
   const filasVisiveis = t || todasEspecialidades ? filas : filas.filter(f => principais.includes(f.especialidade));
-  const abrirPosicao = (esp?: string) => {
-    setEspAberta(null);
-    setPosicaoEsp(esp);
-    setPosicaoOpen(true);
-  };
   const buscar = () => {
     setTermo(busca);
     setTodasEspecialidades(false);
@@ -166,9 +158,6 @@ function Index() {
             <Link to="/sobre" className="hover:text-primary">
               Sobre
             </Link>
-            <Button onClick={() => abrirPosicao()} className="rounded-lg bg-accent px-4 py-2 font-semibold text-accent-foreground transition-colors hover:bg-accent/90">
-              Consultar minha posição
-            </Button>
           </nav>
           <Link to={logado ? "/minhas-consultas" : "/auth"} className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-md ring-2 ring-primary/30 ring-offset-2 ring-offset-card transition hover:bg-primary/90 hover:shadow-lg focus-visible:outline-none focus-visible:ring-4">
             <LogIn className="h-4 w-4" aria-hidden="true" />
@@ -227,12 +216,6 @@ function Index() {
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </form>
-              <Button
-                onClick={() => abrirPosicao()}
-                variant="link" className="mt-3 h-auto whitespace-normal px-0 text-sm font-semibold md:hidden"
-              >
-                Consultar minha posição
-              </Button>
             </div>
 
             {/* Indicadores */}
@@ -437,13 +420,6 @@ function Index() {
       <EspecialidadeDialog
         especialidade={espAberta}
         onClose={() => setEspAberta(null)}
-        onConsultar={abrirPosicao}
-      />
-      <PosicaoDialog
-        key={`${posicaoEsp}-${posicaoOpen}`}
-        open={posicaoOpen}
-        onOpenChange={setPosicaoOpen}
-        especialidadeInicial={posicaoEsp}
       />
     </div>
   );

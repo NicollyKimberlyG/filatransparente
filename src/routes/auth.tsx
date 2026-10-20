@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
-import { ArrowLeft, HeartPulse } from "lucide-react";
+import { ArrowLeft, HeartPulse, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PosicaoDialog } from "@/components/fila-dialogs";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -37,6 +38,7 @@ function AuthPage() {
   const [erro, setErro] = useState("");
   const [aviso, setAviso] = useState("");
   const [carregando, setCarregando] = useState(false);
+  const [consultaOpen, setConsultaOpen] = useState(false);
 
   async function enviar(e: FormEvent) {
     e.preventDefault();
@@ -96,11 +98,23 @@ function AuthPage() {
         <button type="button" className="mt-4 w-full text-sm text-primary underline-offset-2 hover:underline" onClick={() => { setModo(modo === "entrar" ? "criar" : "entrar"); setErro(""); setAviso(""); }}>
           {modo === "entrar" ? "Não tem conta? Criar conta" : "Já tem conta? Entrar"}
         </button>
+        <Button
+          type="button"
+          variant="outline"
+          className="mt-3 h-11 w-full gap-2 font-semibold"
+          onClick={() => setConsultaOpen(true)}
+        >
+          <Search className="h-4 w-4" aria-hidden="true" /> Consultar minha posição
+        </Button>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Informe seu CPF ou Cartão SUS para ver sua posição na fila e os dias de espera.
+        </p>
         <Link to="/" className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-muted">
           <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Voltar para a página inicial
         </Link>
         <p className="mt-6 text-xs text-muted-foreground">Projeto acadêmico independente, sem vínculo oficial com o Ministério da Saúde ou prefeituras.</p>
       </div>
+      <PosicaoDialog open={consultaOpen} onOpenChange={setConsultaOpen} />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { MapPin, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { nomeExemploPorDocumento } from "@/lib/consulta-exemplos";
@@ -252,11 +253,9 @@ export function PosicaoDialog({
 export function EspecialidadeDialog({
   especialidade,
   onClose,
-  onConsultar,
 }: {
   especialidade: string | null;
   onClose: () => void;
-  onConsultar: (esp: string) => void;
 }) {
   const lista = useMemo(
     () => (especialidade ? unidadesDa(especialidade) : []),
@@ -314,12 +313,12 @@ export function EspecialidadeDialog({
           ))}
         </ul>
         {especialidade && <GraficoSazonal especialidade={especialidade} />}
-        <Button
-          onClick={() => especialidade && onConsultar(especialidade)}
-          className="h-11 w-full rounded-lg bg-accent font-semibold text-accent-foreground hover:bg-accent/90"
+        <Link
+          to="/auth"
+          className="flex h-11 w-full items-center justify-center rounded-lg bg-accent font-semibold text-accent-foreground transition-colors hover:bg-accent/90"
         >
-          Consultar minha posição nesta fila
-        </Button>
+          Entrar para consultar sua posição
+        </Link>
       </DialogContent>
     </Dialog>
   );
