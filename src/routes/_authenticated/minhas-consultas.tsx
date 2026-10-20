@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/minhas-consultas")({
     ],
   }),
   validateSearch: (s: Record<string, unknown>): { agendar?: string } =>
-    typeof s.agendar === "string" ? { agendar: s.agendar } : {},
+    typeof s["agendar"] === "string" ? { agendar: s["agendar"] } : {},
   component: MinhasConsultas,
 });
 
