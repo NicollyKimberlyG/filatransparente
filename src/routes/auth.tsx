@@ -79,7 +79,7 @@ function AuthPage() {
           <span className="text-lg font-bold">Fila Transparente</span>
         </Link>
         <h1 className="text-2xl font-bold">{modo === "entrar" ? "Entrar na sua conta" : "Criar conta"}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Veja apenas as suas consultas, sua posição e os dias de espera.</p>
+        <p className="mt-1 text-sm text-muted-foreground">{modo === "entrar" ? "Entre com email e senha para ver e agendar suas consultas. É preciso ter feito o cadastro na sua UBS." : "Use o mesmo CPF e Cartão SUS do cadastro feito na sua UBS."}</p>
         <form onSubmit={enviar} className="mt-6 space-y-4">
           {modo === "criar" && (
             <>
@@ -98,16 +98,19 @@ function AuthPage() {
         <button type="button" className="mt-4 w-full text-sm text-primary underline-offset-2 hover:underline" onClick={() => { setModo(modo === "entrar" ? "criar" : "entrar"); setErro(""); setAviso(""); }}>
           {modo === "entrar" ? "Não tem conta? Criar conta" : "Já tem conta? Entrar"}
         </button>
+        <div className="mt-6 flex items-center gap-3 text-xs font-semibold uppercase text-muted-foreground">
+          <span className="h-px flex-1 bg-border" /> ou só consultar <span className="h-px flex-1 bg-border" />
+        </div>
         <Button
           type="button"
           variant="outline"
           className="mt-3 h-11 w-full gap-2 font-semibold"
           onClick={() => setConsultaOpen(true)}
         >
-          <Search className="h-4 w-4" aria-hidden="true" /> Consultar minha posição
+          <Search className="h-4 w-4" aria-hidden="true" /> Consultar minha posição com CPF ou Cartão SUS
         </Button>
         <p className="mt-2 text-xs text-muted-foreground">
-          Informe seu CPF ou Cartão SUS para ver sua posição na fila e os dias de espera.
+          Sem senha: informe só o CPF ou o número do Cartão SUS para ver sua posição na fila e os dias de espera. Para agendar, entre com email e senha.
         </p>
         <Link to="/" className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-muted">
           <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Voltar para a página inicial

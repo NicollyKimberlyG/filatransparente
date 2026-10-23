@@ -317,7 +317,7 @@ export function EspecialidadeDialog({
           to="/auth"
           className="flex h-11 w-full items-center justify-center rounded-lg bg-accent font-semibold text-accent-foreground transition-colors hover:bg-accent/90"
         >
-          Entrar para consultar sua posição
+          Entrar para agendar consulta
         </Link>
       </DialogContent>
     </Dialog>

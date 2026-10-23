@@ -147,7 +147,7 @@ function Index() {
           </div>
           <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
             <a href="#filas" className="hover:text-primary">
-              Filas
+              Vagas disponíveis
             </a>
             <a href="#unidades" className="hover:text-primary">
               Unidades
@@ -239,15 +239,15 @@ function Index() {
           </div>
         </section>
 
-        {/* Filas por especialidade */}
+        {/* Vagas disponíveis */}
         <section id="filas" className="scroll-mt-24 mx-auto max-w-6xl px-4 py-14">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 className="text-2xl font-bold md:text-3xl">
-                Filas por especialidade
+                Vagas disponíveis
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Especialidades disponíveis · Espera = pessoas na fila ÷ vagas por dia
+                Escolha a especialidade e agende sua consulta · Espera = pessoas na fila ÷ vagas por dia
               </p>
             </div>
             {t && (
@@ -270,12 +270,9 @@ function Index() {
           )}
           <div className="mt-8 grid gap-4 md:grid-cols-2">
             {filasVisiveis.map((fila) => (
-              <Button
-                type="button"
+              <div
                 key={fila.especialidade}
-                onClick={() => setEspAberta(fila.especialidade)}
-                aria-label={`Ver unidades e fila de ${fila.especialidade}`}
-                variant="outline" className="h-auto min-w-0 flex-col items-stretch whitespace-normal rounded-lg border bg-card p-5 text-left shadow-sm hover:bg-card hover:border-primary"
+                className="flex min-w-0 flex-col rounded-lg border bg-card p-5 text-left shadow-sm transition-colors hover:border-primary"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
@@ -294,6 +291,10 @@ function Index() {
                 </div>
                 <div className="mt-4 grid grid-cols-3 gap-3 rounded-lg bg-muted p-3 text-center">
                   <div>
+                    <p className="text-xs text-muted-foreground">Vagas por dia</p>
+                    <p className="mt-0.5 font-bold">{fila.vagas}</p>
+                  </div>
+                  <div>
                     <p className="text-xs text-muted-foreground">Espera estimada</p>
                     <p className="mt-0.5 font-bold">{fila.espera} dias</p>
                   </div>
@@ -301,13 +302,21 @@ function Index() {
                     <p className="text-xs text-muted-foreground">Na fila</p>
                     <p className="mt-0.5 font-bold">{fila.pessoas} pessoas</p>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Melhor opção</p>
-                    <p className="mt-0.5 truncate font-bold">{fila.unidades[0]?.unidade.tipo} · {fila.unidades[0]?.espera}d</p>
-                  </div>
                 </div>
-                <p className="mt-3 text-xs font-semibold text-primary">Ver unidades disponíveis →</p>
-              </Button>
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  <Button type="button" variant="outline" onClick={() => setEspAberta(fila.especialidade)} aria-label={`Ver unidades de ${fila.especialidade}`}>
+                    Ver unidades
+                  </Button>
+                  <Link
+                    to={logado ? "/minhas-consultas" : "/auth"}
+                    aria-label={`Agendar consulta de ${fila.especialidade}`}
+                    className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+                  >
+                    Agendar consulta
+                  </Link>
+                </div>
+                {!logado && <p className="mt-2 text-xs text-muted-foreground">Para agendar, é preciso entrar na sua conta.</p>}
+              </div>
             ))}
           </div>
           {!t && <div className="mt-6 flex justify-center"><Button variant="outline" onClick={() => setTodasEspecialidades(v => !v)}>{todasEspecialidades ? "Mostrar principais" : `Ver todas as especialidades (${ESPECIALIDADES.length})`}</Button></div>}
