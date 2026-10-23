@@ -16,8 +16,8 @@ export const entrarComDocumento = createServerFn({ method: "POST" })
     const email = u.user?.email;
     if (!email) return { ok: false as const };
     const { createClient } = await import("@supabase/supabase-js");
-    const key = process.env.SUPABASE_PUBLISHABLE_KEY!;
-    const client = createClient(process.env.SUPABASE_URL!, key, {
+    const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
+    const client = createClient(process.env["SUPABASE_URL"]!, key, {
       auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
     });
     const { data: s, error } = await client.auth.signInWithPassword({ email, password: data.senha });
