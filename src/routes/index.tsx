@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { LogIn, CalendarPlus } from "lucide-react";
+import { LogIn } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { UnidadesDiretorio } from "@/components/unidades-diretorio";
@@ -147,7 +147,7 @@ function Index() {
           </div>
           <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
             <a href="#filas" className="hover:text-primary">
-              Vagas disponíveis
+              Filas
             </a>
             <a href="#unidades" className="hover:text-primary">
               Unidades
@@ -239,15 +239,15 @@ function Index() {
           </div>
         </section>
 
-        {/* Vagas disponíveis */}
+        {/* Filas por especialidade */}
         <section id="filas" className="scroll-mt-24 mx-auto max-w-6xl px-4 py-14">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 className="text-2xl font-bold md:text-3xl">
-                Vagas disponíveis
+                Filas por especialidade
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Escolha a especialidade e agende sua consulta · Espera = pessoas na fila ÷ vagas por dia
+                Especialidades disponíveis · Espera = pessoas na fila ÷ vagas por dia
               </p>
             </div>
             {t && (
@@ -270,14 +270,12 @@ function Index() {
           )}
           <div className="mt-8 grid gap-4 md:grid-cols-2">
             {filasVisiveis.map((fila) => (
-              <div
-                role="button"
-                tabIndex={0}
+              <Button
+                type="button"
                 key={fila.especialidade}
                 onClick={() => setEspAberta(fila.especialidade)}
-                onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); setEspAberta(fila.especialidade); } }}
-                aria-label={`Ver vagas de ${fila.especialidade}`}
-                className="flex min-w-0 cursor-pointer flex-col rounded-lg border bg-card p-5 text-left shadow-sm transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label={`Ver unidades e fila de ${fila.especialidade}`}
+                variant="outline" className="h-auto min-w-0 flex-col items-stretch whitespace-normal rounded-lg border bg-card p-5 text-left shadow-sm hover:bg-card hover:border-primary"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
@@ -308,18 +306,8 @@ function Index() {
                     <p className="mt-0.5 truncate font-bold">{fila.unidades[0]?.unidade.tipo} · {fila.unidades[0]?.espera}d</p>
                   </div>
                 </div>
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-primary">Ver unidades disponíveis →</span>
-                  <Link
-                    to={logado ? "/minhas-consultas" : "/auth"}
-                    search={{ agendar: fila.especialidade }}
-                    onClick={(e) => e.stopPropagation()}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-                  >
-                    <CalendarPlus className="h-4 w-4" aria-hidden="true" /> Agendar consulta
-                  </Link>
-                </div>
-              </div>
+                <p className="mt-3 text-xs font-semibold text-primary">Ver unidades disponíveis →</p>
+              </Button>
             ))}
           </div>
           {!t && <div className="mt-6 flex justify-center"><Button variant="outline" onClick={() => setTodasEspecialidades(v => !v)}>{todasEspecialidades ? "Mostrar principais" : `Ver todas as especialidades (${ESPECIALIDADES.length})`}</Button></div>}
