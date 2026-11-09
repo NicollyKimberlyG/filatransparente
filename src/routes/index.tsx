@@ -1,3 +1,4 @@
+import { NIVEIS } from "@/lib/fila";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { LogIn } from "lucide-react";
