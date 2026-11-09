@@ -20,7 +20,7 @@ describe("Ordem da fila", () => {
   });
   it("atende vermelho antes de laranja, amarelo, verde e azul", () => {
     const n = (id: string, chegada: number, nivel: "vermelho" | "laranja" | "amarelo" | "verde" | "azul") => ({ id, chegada, urgente: false, nivel });
-    expect(organizarFila([n("azul", 1), n("verde", 2), n("amarelo", 3), n("laranja", 4), n("vermelho", 5)]).map(p => p.id)).toEqual(["vermelho", "laranja", "amarelo", "verde", "azul"]);
+    expect(organizarFila([n("azul", 1, "azul"), n("verde", 2, "verde"), n("amarelo", 3, "amarelo"), n("laranja", 4, "laranja"), n("vermelho", 5, "vermelho")]).map(p => p.id)).toEqual(["vermelho", "laranja", "amarelo", "verde", "azul"]);
   });
   it("mantém a ordem de chegada dentro da mesma cor", () => {
     const fila = criarFila(148);
