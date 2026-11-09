@@ -16,7 +16,14 @@ describe("Ordem da fila", () => {
   it("mantém a fila de exemplo inteira na mesma regra", () => {
     const fila = criarFila(148);
     expect(fila).toHaveLength(148);
-    expect(fila.filter(p => p.urgente).map(p => p.chegada)).toEqual([4,17,30,43,56,69,82,95,108,121,134,147]);
+    expect(fila.filter(p => p.urgente).map(p => p.chegada).sort((a, b) => a - b)).toEqual([4,17,30,43,56,69,82,95,108,121,134,147]);
+  });
+  it("atende vermelho antes de laranja, amarelo, verde e azul", () => {
+    const n = (id: string, chegada: number, nivel: "vermelho" | "laranja" | "amarelo" | "verde" | "azul") => ({ id, chegada, urgente: false, nivel });
+    expect(organizarFila([n("azul", 1), n("verde", 2), n("amarelo", 3), n("laranja", 4), n("vermelho", 5)]).map(p => p.id)).toEqual(["vermelho", "laranja", "amarelo", "verde", "azul"]);
+  });
+  it("mantém a ordem de chegada dentro da mesma cor", () => {
+    const fila = criarFila(148);
     expect(fila.slice(0, 12).every(p => p.urgente)).toBe(true);
     expect(fila[12]?.chegada).toBe(1);
   });

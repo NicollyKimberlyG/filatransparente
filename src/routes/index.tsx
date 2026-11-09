@@ -354,10 +354,10 @@ function Index() {
               <h3 className="font-bold">Como a fila é organizada?</h3>
               <ol className="mt-4 space-y-4">
                 {[
-                  "O atendimento segue a ordem de chegada",
-                  "Urgências têm prioridade após avaliação da equipe de saúde",
-                  "Uma nova urgência fica após as prioridades já na fila, por ordem de chegada",
-                  "Os demais pacientes mantêm sua ordem de chegada",
+                  "A equipe de saúde classifica o risco por cor",
+                  "Cores mais graves são atendidas primeiro",
+                  "Na mesma cor, vale a ordem de chegada",
+                  "Uma nova urgência fica após quem já estava na mesma cor",
                 ].map((passo, i) => (
                   <li key={passo} className="flex gap-3 text-sm">
                     <span
@@ -370,6 +370,14 @@ function Index() {
                   </li>
                 ))}
               </ol>
+              <ul className="mt-4 space-y-1.5 text-sm" aria-label="Classificação de risco">
+                {NIVEIS.map(n => (
+                  <li key={n.nivel} className="flex items-center gap-2">
+                    <span className={`h-3.5 w-3.5 shrink-0 rounded-full ring-1 ring-border ${n.classe}`} aria-hidden="true" />
+                    <span><strong>{n.rotulo}</strong> · {n.descricao}</span>
+                  </li>
+                ))}
+              </ul>
               <details className="mt-6 rounded-lg border bg-card p-4">
                 <summary className="cursor-pointer text-sm font-semibold text-primary">Dúvidas: qual unidade procurar?</summary>
                 <dl className="mt-3 space-y-3 text-sm">
