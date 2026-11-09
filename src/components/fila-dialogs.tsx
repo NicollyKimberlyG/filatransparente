@@ -13,7 +13,7 @@ import {
 
 export { UNIDADES, ESPECIALIDADES, unidadesDa } from "@/lib/unidades";
 import { ESPECIALIDADES, unidadesDa } from "@/lib/unidades";
-import { criarFila, esperaEstimada, identificacaoPublica, pacientePorDocumento, sazonalidade, type PacienteFila } from "@/lib/fila";
+import { NIVEIS, nivelDe, criarFila, esperaEstimada, identificacaoPublica, pacientePorDocumento, sazonalidade, type PacienteFila } from "@/lib/fila";
 
 function FilaLista({ fila, minhaPosicao, nome }: { fila: PacienteFila[]; minhaPosicao: number; nome: string }) {
   const total = fila.length;
@@ -46,9 +46,15 @@ function FilaLista({ fila, minhaPosicao, nome }: { fila: PacienteFila[]; minhaPo
               <UserRound className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span className="break-words">{eu ? `${nome} (Você)` : identificacaoPublica(paciente?.chegada ?? p)}</span>
             </span>
-            <span className={`shrink-0 text-xs ${eu ? "" : "text-muted-foreground"}`}>
-              {paciente?.urgente ? <span className={`rounded px-1.5 py-0.5 font-semibold ${eu ? "" : "bg-destructive/15 text-destructive"}`}>Urgência · Prioridade</span> : "Ordem de chegada"}
-            </span>
+            {paciente && (() => {
+              const n = NIVEIS.find(x => x.nivel === nivelDe(paciente))!;
+              return (
+                <span className="flex shrink-0 items-center gap-1.5 text-xs font-semibold">
+                  <span className={`h-3 w-3 rounded-full ring-1 ring-border ${n.classe}`} aria-hidden="true" />
+                  {n.rotulo}
+                </span>
+              );
+            })()}
           </li>
         );
       })}

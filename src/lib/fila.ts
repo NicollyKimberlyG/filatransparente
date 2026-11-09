@@ -1,12 +1,27 @@
-export type PacienteFila = { id: string; chegada: number; urgente: boolean };
-// Urgency is assigned by clinical assessment, never by a patient-facing control.
+export type NivelRisco = "vermelho" | "laranja" | "amarelo" | "verde" | "azul";
+export const NIVEIS: { nivel: NivelRisco; rotulo: string; descricao: string; classe: string }[] = [
+  { nivel: "vermelho", rotulo: "Emergência", descricao: "atendimento imediato", classe: "bg-tri-vermelho" },
+  { nivel: "laranja", rotulo: "Muito urgente", descricao: "prioridade alta", classe: "bg-tri-laranja" },
+  { nivel: "amarelo", rotulo: "Urgente", descricao: "prioridade", classe: "bg-tri-amarelo" },
+  { nivel: "verde", rotulo: "Pouco urgente", descricao: "ordem de chegada", classe: "bg-tri-verde" },
+  { nivel: "azul", rotulo: "Não urgente", descricao: "ordem de chegada", classe: "bg-tri-azul" },
+];
+export type PacienteFila = { id: string; chegada: number; urgente: boolean; nivel?: NivelRisco };
+export function nivelDe(p: PacienteFila): NivelRisco {
+  return p.nivel ?? (p.urgente ? "amarelo" : "azul");
+}
+const rank = (p: PacienteFila) => NIVEIS.findIndex(n => n.nivel === nivelDe(p));
+// Risk level is assigned by clinical assessment, never by a patient-facing control.
+// Higher risk first; within the same level, arrival order.
 export function organizarFila<T extends PacienteFila>(pacientes: readonly T[]): T[] {
-  return [...pacientes].sort((a, b) => Number(b.urgente) - Number(a.urgente) || a.chegada - b.chegada);
+  return [...pacientes].sort((a, b) => rank(a) - rank(b) || a.chegada - b.chegada);
 }
 export function criarFila(total: number): PacienteFila[] {
-  return organizarFila(Array.from({ length: total }, (_, i) => ({
-    id: `paciente-${i + 1}`, chegada: i + 1, urgente: i % 13 === 3,
-  })));
+  return organizarFila(Array.from({ length: total }, (_, i) => {
+    const urgente = i % 13 === 3;
+    const nivel: NivelRisco = urgente ? (i % 39 === 3 ? "vermelho" : i % 39 === 16 ? "laranja" : "amarelo") : i % 3 === 0 ? "verde" : "azul";
+    return { id: `paciente-${i + 1}`, chegada: i + 1, urgente, nivel };
+  }));
 }
 export function pacientePorDocumento(documento: string, total: number) {
   let h = 0;
