@@ -1,14 +1,5 @@
 # Filatransparente
-
-Crie o design de interface de usuário (UI) para um sistema web/mobile chamado "SUS FILA TRANSPARENTE", focado no gerenciamento e visualização pública de filas de atendimento médico. O design deve ser limpo, moderno, altamente acessível e organizado em blocos de informação claros.
-
-This project was built with [Lovable](https://lovable.dev).
-
-**Live app**: https://filatransparente.lovable.app
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/869ca4ce-4b9f-4d7c-af44-afdb53173fa9).
+Projeto Integrador para desenvolvimento da plataforma Fila Transparente, focada na transparência pública da saúde.
 
 - **Ship faster**: describe what you want to build and Lovable handles the code.
 - **Stay in sync**: every change made in Lovable is committed straight to this repository.
